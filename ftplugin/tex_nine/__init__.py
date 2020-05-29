@@ -282,7 +282,7 @@ class TeXNineBibTeX(TeXNineBase):
                 e = messages['MASTER_NOT_ACTIVE'].format(path.basename(master))
                 raise TeXNineError(e)
             else:
-                match = re.search(r'\\bibliography{([^}]+)}',
+                match = re.search(r'\\(?:bibliography|addbibresource){([^}]+)}',
                                   masterbuffer)
                 if not match:
                     e = messages['NO_BIBTEX']
@@ -292,7 +292,8 @@ class TeXNineBibTeX(TeXNineBase):
                 dirname = path.dirname(master)
                 # Find the absolute paths of the bibfiles
                 for b in bibfiles:
-                    b += '.bib'
+                    if not b.endswith('.bib'):
+                        b += '.bib'
                     # Check if the bibfile is in the compilation folder
                     bibtemp = path.join(dirname, b)
                     b = ( bibtemp if path.exists(bibtemp) else b )
@@ -347,7 +348,7 @@ class TeXNineOmni(TeXNineBibTeX):
 
     @TeXNineBase.multi_file
     def _labels(self, vimbuffer,
-                pat=re.compile(r'\\label{(?P<label>[^,}]+)}|\\in(?:clude|put){(?P<fname>[^}]+)}')):
+                pat=re.compile(r'\\label{(?P<label>[^,}]+)}|\\in(?:clude\*?|put){(?P<fname>[^}]+)}')):
         """Labels for references.
 
         Searches \label{} statements in the master file and in
@@ -384,9 +385,8 @@ class TeXNineOmni(TeXNineBibTeX):
 
             try:
                 with open(path.join(master_folder, fname), 'r') as f:
-                    inc_labels = re.findall(r'\\label{(?P<label>[^,}]+)}',
-                                            f.read()) 
-                    inc_labels = [dict(word=i, menu=fname) for i in inc_labels] 
+                    inc_labels = re.findall(r'\\label{(?P<label>[^,}]+)}', f.read())
+                    inc_labels = [dict(word=i, menu=fname) for i in inc_labels]
                     labels += inc_labels
             except IOError, e:
                 # Do not raise an error because the \include statement might
@@ -423,6 +423,30 @@ class TeXNineOmni(TeXNineBibTeX):
             pics += [ path.join(d, pic) for pic in files if pic[pic.rfind('.'):] in extensions ] 
 
         return pics
+
+    # Omni completion for \includeonly.
+    #
+    # As @TeXNineBase.multi_file is used,vimbuffer.name contains name of
+    # master file, and vim.current.buffer.name contains name of current
+    # file. If the current file is not master, return error, as
+    # \include's can only be used from master. Otherwise return the list
+    # with the matches for \include commands that were found.
+    @TeXNineBase.multi_file
+    def _included(self, vimbuffer):
+      pat=re.compile(r'^\s*\\include{(?P<fname>[^,}]+)}', re.MULTILINE)
+      vim.command('update')
+
+      # If we are not on master file, return.
+      if not vimbuffer.name == vim.current.buffer.name:
+        raise TeXNineError("\include's can only be used in MASTER FILE!!") # XXX this should not be an exception (but only an error message)...
+
+      # Otherwise, find all \include{} commands, and return their
+      # arguments in a list, if any.
+      currentbuffer = "\n".join(vim.current.buffer[:]) # slurp text of current buffer
+      match = pat.findall(currentbuffer)
+      if not match:
+        return None
+      return match
 
     def findstart(self, pat=re.compile(r'\\(\w+)(?:[(].+[)])?(?:[[].+[]])?{?')):
         """Finds the cursor position where completion starts."""
@@ -471,6 +495,9 @@ class TeXNineOmni(TeXNineBibTeX):
                     compl = self._fonts()
                 elif 'includegraphics' in self.keyword:
                     compl = self._pics()
+                elif 'includeonly' in self.keyword:
+                    # compl = self._included()
+                    compl = self._included(vim.current.buffer)
 
         except TeXNineError, e:
             echoerr("Omni completion failed: "+str(e))
@@ -532,8 +559,10 @@ class TeXNineSnippets(object):
 
         If the snippet is not found, generic environment is inserted in
         LaTeX files and error is raised in BibTeX files.  After the
-        snippet is inserted, cursor position is returned to the original
-        position with Vim's ``context mark'' syntax.
+        snippet is inserted, if it is a generic snippet, cursor is left,
+        in insert mode, at the first line inside the environment.
+        Otherwise, it is left in the original position, using Vim's
+        ``context mark'' syntax.
 
         This method is hooked to a <expr> mapping and thus it returns a
         string that Vim then automatically indents.
@@ -545,10 +574,7 @@ class TeXNineSnippets(object):
             snippet = "m`i"+snippet+"``"
         except KeyError:
             if ft == 'tex':
-               snippet = ( "m`i"+
-                           "\\begin{"+keyword+"}\n\\end{"+keyword+"}"+
-                           "``" 
-                         )
+               snippet = ( "\\begin{"+keyword+"}\n\\end{"+keyword+"}" + "O" )
             elif ft == 'bib':
                 echoerr(messages["INVALID_BIBENTRY_TYPE"].format(keyword))
                 snippet = ""

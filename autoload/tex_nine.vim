@@ -203,7 +203,8 @@ function tex_nine#EnvironmentOperator(mode)
         let pos[0] += 1
         let pos[1] -= 1
     endif
-    return "\<Esc>:".pos[0]."\<Enter>V".(pos[1] - pos[0])."jO" 
+    let delta = pos[1] - pos[0] > 0 ? (pos[1] - pos[0])."j" : ""
+    return "\<Esc>:".pos[0]."\<Enter>V".delta."O"
 endfunction
 
 
@@ -269,7 +270,7 @@ EOF
     endif
 
     " Modeline takes precedence 
-    let tex_nine_compiler = tex_nine_compiler ? a:config.compiler : tex_nine_compiler 
+    let tex_nine_compiler = tex_nine_compiler!="" ? tex_nine_compiler : a:config.compiler
 
     if tex_nine_compiler != ""
         call tex_nine#ConfigureCompiler(tex_nine_compiler, a:config.synctex, a:config.shell_escape, a:config.extra_args)

@@ -50,12 +50,10 @@ let b:init_tex_nine = 1
 "***********************************************************************
 ru ftplugin/tex_nine/tex_nine_common.vim
 
-setlocal completeopt=longest,menuone 
+setlocal completeopt=longest,menuone
 setlocal fo=tcq
-setlocal tw=72 sw=2
-setlocal tabstop=8 
 setlocal omnifunc=tex_nine#OmniCompletion
-setlocal completefunc=tex_nine#MathCompletion 
+setlocal completefunc=tex_nine#MathCompletion
 
 call tex_nine#AddBuffer(b:tex_nine_config, b:tex_nine_snippets)
 call tex_nine#SetAutoCmds(b:tex_nine_config)
@@ -97,9 +95,10 @@ inoremap <buffer> <LocalLeader><LocalLeader> <LocalLeader>
 inoremap <buffer> <LocalLeader>K 
 inoremap <buffer> <LocalLeader>M \
 inoremap <buffer><expr> <LocalLeader>B tex_nine#InsertSnippet()
+imap <buffer><expr> <LocalLeader>C tex_nine#SmartInsert('\cite{', '\[cC]ite')
 imap <buffer><expr> <LocalLeader>E tex_nine#SmartInsert('\eqref{')
 imap <buffer><expr> <LocalLeader>R tex_nine#SmartInsert('\ref{')
-imap <buffer><expr> <LocalLeader>C tex_nine#SmartInsert('\cite{', '\[cC]ite')
+imap <buffer><expr> <LocalLeader>Z tex_nine#SmartInsert('\includeonly{')
 
 " SyncTeX
 if b:tex_nine_config.synctex
@@ -181,8 +180,8 @@ inoremap <buffer><expr> = tex_nine#IsLeft('=') ? '<BS>&=' : '='
 inoremap <buffer><expr> ~ tex_nine#IsLeft('~') ? '<BS>\approx' : '~'
 
 " These are problematic when you want to type << or >> (C bitshift, C++ operators) 
-"inoremap <buffer><expr> < tex_nine#IsLeft('<') ? '<BS>\ll' : '<'
-"inoremap <buffer><expr> > tex_nine#IsLeft('>') ? '<BS>\gg' : '>'
+inoremap <buffer><expr> < tex_nine#IsLeft('<') ? '<BS>\ll' : '<'
+inoremap <buffer><expr> > tex_nine#IsLeft('>') ? '<BS>\gg' : '>'
 
 " Robust inner/outer environment operators
 vmap <buffer><expr> ae tex_nine#EnvironmentOperator('outer')
