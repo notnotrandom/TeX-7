@@ -212,12 +212,10 @@ endfunction
 " Settings
 "***********************************************************************
 
-function tex_nine#AddBuffer(config, snipfile)
+function tex_nine#AddBuffer(config)
 python << EOF
 omni = TeXNineOmni()
 document = TeXNineDocument(vim.current.buffer)
-document.setup_snippets(vim.eval('a:snipfile'),
-                        vim.eval('&ft'))
 
 EOF
 if a:config.synctex == 1

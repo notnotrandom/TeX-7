@@ -55,7 +55,7 @@ setlocal fo=tcq
 setlocal omnifunc=tex_nine#OmniCompletion
 setlocal completefunc=tex_nine#MathCompletion
 
-call tex_nine#AddBuffer(b:tex_nine_config, b:tex_nine_snippets)
+call tex_nine#AddBuffer(b:tex_nine_config)
 call tex_nine#SetAutoCmds(b:tex_nine_config)
 
 "***********************************************************************
