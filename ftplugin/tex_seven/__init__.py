@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #************************************************************************
 #
-#                     TeX-9 library: Python module
+#                     TeX-7 library: Python module
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 # Short summary of the module:
 #
-# Defines two main objects TeXNineDocument and TeXNineOmni that are
+# Defines two main objects TeXSevenDocument and TeXSevenOmni that are
 # meant to handle editing and completion tasks. Both of these classes
 # are singletons. 
 
@@ -41,19 +41,19 @@ from itertools import groupby
 from string import Template
 
 #Local modules
-# config = vim.bindeval('b:tex_nine_config')
+# config = vim.bindeval('b:tex_seven_config')
 # TODO: Remove vim.eval() in favor of vim.bindeval() 
-# TODO: Separate python module from b:tex_nine_config
+# TODO: Separate python module from b:tex_seven_config
 # Older Vim's do not have bindeval
-config = vim.eval('b:tex_nine_config')
+config = vim.eval('b:tex_seven_config')
 config['disable'] = int(config['disable'])
 config['debug'] = int(config['debug'])
 config['synctex'] = int(config['synctex'])
 config['verbose'] = int(config['verbose'])
 
 sys.path.extend([config['_pypath']])
-from tex_nine_symbols import tex_nine_maths_cache
-from tex_nine_utils import *
+from tex_seven_symbols import tex_seven_maths_cache
+from tex_seven_utils import *
 
 # Control debugging
 if config['debug']:
@@ -66,9 +66,9 @@ else:
 if config['synctex']:
     if int(vim.eval("has('gui_running')")):
         if not int(vim.eval("has('python3')")): 
-            logging.debug("TeX-9: Importing tex_nine_synctex") 
+            logging.debug("TeX-7: Importing tex_seven_synctex") 
             # NB: Important side effect: Vim will be hooked to the DBus session daemon
-            import tex_nine_synctex
+            import tex_seven_synctex
         else:
             echoerr("Must not have +python3 when using SyncTeX.")
     else:
@@ -79,7 +79,7 @@ config['_datelabel'] = '%  Last Change:'
 config['_timestr'] = '%Y %b %d'
 
 # Start of the main module
-logging.debug("TeX-9: Entering the Python module.")
+logging.debug("TeX-7: Entering the Python module.")
 
 messages = {
         'NO_BIBTEX': 'No BibTeX databases present...',
@@ -95,8 +95,8 @@ messages = {
         'NO_COMPILER': r'Compiler unknown.'
 }
 
-class TeXNineBase(object):
-    """Singleton base class for TeX-9."""
+class TeXSevenBase(object):
+    """Singleton base class for TeX-7."""
 
     _instance = None
     buffers = {}
@@ -111,7 +111,7 @@ class TeXNineBase(object):
         
         Does not override existing entries.
         """
-        logging.debug("TeX-9: Adding `{0}\' to buffer dict.".format(vimbuffer.name))
+        logging.debug("TeX-7: Adding `{0}\' to buffer dict.".format(vimbuffer.name))
         bufinfo = {
             'ft' : vim.eval('&ft'),
             'master': "",
@@ -134,7 +134,7 @@ class TeXNineBase(object):
         where <master_file> is the path of the master file relative to
         the master file, e.g. ../main.tex.
 
-        Raises `TeXNineError' if master cannot be found.
+        Raises `TeXSevenError' if master cannot be found.
 
         """
 
@@ -155,10 +155,10 @@ class TeXNineBase(object):
                     return master_file
                 else:
                     e = messages['INVALID_MODELINE'].format(match.group(1)) 
-                    raise TeXNineError(e)
+                    raise TeXSevenError(e)
 
         # Empty buffer, no match or no read access to master 
-        raise TeXNineError(messages['NO_MODELINE'])
+        raise TeXSevenError(messages['NO_MODELINE'])
 
     def get_master_file(self, vimbuffer):
         """Returns the filename of the master file."""
@@ -182,7 +182,7 @@ class TeXNineBase(object):
         The decorator swaps passed vim.buffer object to the vim.buffer object
         of the master file.
 
-        When calling a decorated method, `TeXNineError' has to be caught.
+        When calling a decorated method, `TeXSevenError' has to be caught.
 
         """
         def new_f(self, vimbuffer, *args, **kwargs):
@@ -206,7 +206,7 @@ class TeXNineBase(object):
 
         return new_f
 
-class TeXNineBibTeX(TeXNineBase):
+class TeXSevenBibTeX(TeXSevenBase):
     """A class to gather BibTeX entries in a list.
 
     After instantiation, this object tries to figure out
@@ -217,11 +217,11 @@ class TeXNineBibTeX(TeXNineBase):
     a list of absolute paths to the BibTeX files:
 
     # Let the object figure out everything
-    omni = TeXNineBibTeX()
+    omni = TeXSevenBibTeX()
     entries = omni.bibentries
 
     # DIY
-    omni = TeXNineBibTeX()
+    omni = TeXSevenBibTeX()
     omni.bibpaths = [path1, path2,...]
     entries = omni.bibentries
 
@@ -237,7 +237,7 @@ class TeXNineBibTeX(TeXNineBase):
         """Opens a file and extracts all BibTeX entries in it."""
         try:
             with open(fname) as f:
-                logging.debug("TeX-9: Reading BibTeX entries from `{0}'".format(path.basename(fname)))
+                logging.debug("TeX-7: Reading BibTeX entries from `{0}'".format(path.basename(fname)))
                 return re.findall('^@\w+ *{\s*([^, ]+) *,', f.read(), re.M)
 
         except IOError:
@@ -260,7 +260,7 @@ class TeXNineBibTeX(TeXNineBase):
         return self.get_bibentries()
 
     # Lazy load
-    @TeXNineBase.multi_file
+    @TeXSevenBase.multi_file
     def get_bibpaths(self, vimbuffer, update=False):
         """Returns the BibTeX files in a LaTeX project.
 
@@ -280,13 +280,13 @@ class TeXNineBibTeX(TeXNineBase):
             masterbuffer = "\n".join(vimbuffer[:])
             if not masterbuffer:
                 e = messages['MASTER_NOT_ACTIVE'].format(path.basename(master))
-                raise TeXNineError(e)
+                raise TeXSevenError(e)
             else:
                 match = re.search(r'\\(?:bibliography|addbibresource){([^}]+)}',
                                   masterbuffer)
                 if not match:
                     e = messages['NO_BIBTEX']
-                    raise TeXNineError(e)
+                    raise TeXSevenError(e)
 
                 bibfiles = match.group(1).split(',')
                 dirname = path.dirname(master)
@@ -306,7 +306,7 @@ class TeXNineBibTeX(TeXNineBase):
                     if bibpath:
                         self._bibpaths.add(bibpath)
                     else:
-                        raise TeXNineError(messages["INVALID_BIBFILE"].format(b))
+                        raise TeXSevenError(messages["INVALID_BIBFILE"].format(b))
 
         return list(self._bibpaths)
 
@@ -327,7 +327,7 @@ class TeXNineBibTeX(TeXNineBase):
         else:
             self.get_bibpaths(vim.current.buffer, update=True)
 
-class TeXNineOmni(TeXNineBibTeX):
+class TeXSevenOmni(TeXSevenBibTeX):
     """Vim's omni completion for a LaTeX document.
 
     findstart() finds the position where completion should start and
@@ -346,7 +346,7 @@ class TeXNineOmni(TeXNineBibTeX):
     def __init__(self, bibfiles=[]):
         self.keyword = None
 
-    @TeXNineBase.multi_file
+    @TeXSevenBase.multi_file
     def _labels(self, vimbuffer,
                 pat=re.compile(r'\\label{(?P<label>[^,}]+)}|\\in(?:clude\*?|put){(?P<fname>[^}]+)}')):
         """Labels for references.
@@ -367,8 +367,8 @@ class TeXNineOmni(TeXNineBibTeX):
         if not match:
             if not masterbuffer:
                 e = messages['MASTER_NOT_ACTIVE'].format(basename)
-                raise TeXNineError(e)
-            logging.debug('TeX-9: Found {0} labels'.format(len(labels)))
+                raise TeXSevenError(e)
+            logging.debug('TeX-7: Found {0} labels'.format(len(labels)))
             return labels
 
         labels, included = zip(*match)
@@ -378,7 +378,7 @@ class TeXNineOmni(TeXNineBibTeX):
         labels = [dict(word=i, menu=basename) for i in labels]
         for fname in included:
 
-            logging.debug("TeX-9: Reading from included file `{0}'...".format(fname))
+            logging.debug("TeX-7: Reading from included file `{0}'...".format(fname))
 
             if not fname.endswith('.tex'):
                 fname += '.tex'
@@ -393,7 +393,7 @@ class TeXNineOmni(TeXNineBibTeX):
                 # be commented
                 logging.debug(str(e).decode('string_escape'))
 
-        logging.debug('TeX-9: Found {0} labels'.format(len(labels)))
+        logging.debug('TeX-7: Found {0} labels'.format(len(labels)))
         return labels
 
     def _fonts(self):
@@ -426,19 +426,19 @@ class TeXNineOmni(TeXNineBibTeX):
 
     # Omni completion for \includeonly.
     #
-    # As @TeXNineBase.multi_file is used,vimbuffer.name contains name of
+    # As @TeXSevenBase.multi_file is used,vimbuffer.name contains name of
     # master file, and vim.current.buffer.name contains name of current
     # file. If the current file is not master, return error, as
     # \include's can only be used from master. Otherwise return the list
     # with the matches for \include commands that were found.
-    @TeXNineBase.multi_file
+    @TeXSevenBase.multi_file
     def _included(self, vimbuffer):
       pat=re.compile(r'^\s*\\include{(?P<fname>[^,}]+)}', re.MULTILINE)
       vim.command('update')
 
       # If we are not on master file, return.
       if not vimbuffer.name == vim.current.buffer.name:
-        raise TeXNineError("\include's can only be used in MASTER FILE!!") # XXX this should not be an exception (but only an error message)...
+        raise TeXSevenError("\include's can only be used in MASTER FILE!!") # XXX this should not be an exception (but only an error message)...
 
       # Otherwise, find all \include{} commands, and return their
       # arguments in a list, if any.
@@ -499,14 +499,14 @@ class TeXNineOmni(TeXNineBibTeX):
                     # compl = self._included()
                     compl = self._included(vim.current.buffer)
 
-        except TeXNineError, e:
+        except TeXSevenError, e:
             echoerr("Omni completion failed: "+str(e))
             compl = []
 
         return compl
 
-class TeXNineSnippets(object):
-    """Snippet engine for TeX-9.
+class TeXSevenSnippets(object):
+    """Snippet engine for TeX-7.
 
     """
     _snippets = {'tex': {}, 'bib': {}}
@@ -541,7 +541,7 @@ class TeXNineSnippets(object):
             # We have the snippets already
             return
 
-        logging.debug("TeX-9: Reading snippets from `{0}'.".format(path.basename(fname)))
+        logging.debug("TeX-7: Reading snippets from `{0}'.".format(path.basename(fname)))
         with open(fname) as snipfile:
 
             # Strip trailing empty lines
@@ -581,10 +581,10 @@ class TeXNineSnippets(object):
 
         return snippet
 
-class TeXNineDocument(TeXNineBase, TeXNineSnippets):
+class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
     """A class to manipulate LaTeX documents in Vim.
     
-    TeXNineDocument can
+    TeXSevenDocument can
 
     * Insert a skeleton file into the current Vim buffer
     * Update the dynamic content in the skeleton header
@@ -594,7 +594,7 @@ class TeXNineDocument(TeXNineBase, TeXNineSnippets):
     * Insert LaTeX/BibTeX code snippets
     * Send current cursor position to an Evince window for highlighting
 
-    Methods that are decorated with TeXNineBase.multi_file are designed
+    Methods that are decorated with TeXSevenBase.multi_file are designed
     to also work in multi-file LaTeX projects.
     
     """
@@ -602,12 +602,12 @@ class TeXNineDocument(TeXNineBase, TeXNineSnippets):
                  date_label=config['_datelabel'],
                  timestr=config['_timestr']):
 
-        TeXNineBase.add_buffer(self, vimbuffer)
+        TeXSevenBase.add_buffer(self, vimbuffer)
         self.date_label = date_label
         self.timestr = timestr
         self.biberrors = []
 
-    @TeXNineBase.multi_file
+    @TeXSevenBase.multi_file
     def get_master_output(self, vimbuffer):
         """Get the output file (PDF or DVI) of the LaTeX project"""
         output = vimbuffer.name
@@ -616,30 +616,30 @@ class TeXNineDocument(TeXNineBase, TeXNineSnippets):
         if path.exists(output):
             return output
         else:
-            raise TeXNineError(messages['NO_OUTPUT'].format(output))
+            raise TeXSevenError(messages['NO_OUTPUT'].format(output))
 
 
-    @TeXNineBase.multi_file
+    @TeXSevenBase.multi_file
     def forward_search(self, vimbuffer, vimcurrent):
         """Highligts current cursor position in Evince."""
 
         if self.buffers[vimbuffer.name]['synctex'] is None:
             try:
                 target = document.get_master_output(vimbuffer)
-                evince_proxy = tex_nine_synctex.TeXNineSyncTeX(target,
+                evince_proxy = tex_seven_synctex.TeXSevenSyncTeX(target,
                                                                logging) 
                 self.buffers[vimbuffer.name]['synctex'] = evince_proxy
-            except TeXNineError, NameError:
+            except TeXSevenError, NameError:
                 return
 
         s = self.buffers[vimbuffer.name]['synctex']
-        syncstr = "TeX-9: master={0}, row={1[0]}, col={1[1]}" 
+        syncstr = "TeX-7: master={0}, row={1[0]}, col={1[1]}" 
         logging.debug(syncstr.format(vimbuffer.name,
                                      vimcurrent.window.cursor))
         s.forward_search(vimcurrent.buffer.name, vimcurrent.window.cursor)
         return
 
-    @TeXNineBase.multi_file
+    @TeXSevenBase.multi_file
     def compile(self, vimbuffer, compiler):
         """Compiles the current LaTeX manuscript updating the references.
 
@@ -680,11 +680,11 @@ class TeXNineDocument(TeXNineBase, TeXNineSnippets):
                 if compiler:
                     self.buffers[vimbuffer.name]['compiler'] = compiler
                 else:
-                    raise TeXNineError(messages['NO_COMPILER'])
+                    raise TeXSevenError(messages['NO_COMPILER'])
 
             return self.buffers[vimbuffer.name]['compiler']
 
-        except TeXNineError, e:
+        except TeXSevenError, e:
             echoerr(e)
             return ""
         except KeyError:
@@ -719,7 +719,7 @@ class TeXNineDocument(TeXNineBase, TeXNineSnippets):
             output = self.get_master_output(vimbuffer)
             cmd = '{0} "{1}" &> /dev/null &'.format(config['viewer']['app'], output)
             subprocess.call(cmd, shell=True)
-        except TeXNineError, e:
+        except TeXSevenError, e:
             echoerr("Cannot determine the output file: "+str(e))
 
     def insert_skeleton(self, vimbuffer, skeleton_file):
@@ -768,7 +768,7 @@ class TeXNineDocument(TeXNineBase, TeXNineSnippets):
         if paths:
             echomsg(messages["INVALID_BIBENTRY"].format(cword))
 
-logging.debug("TeX-9: Done with the Python module.")
+logging.debug("TeX-7: Done with the Python module.")
 
 # vim: tw=72 fdm=indent fdn=1
 

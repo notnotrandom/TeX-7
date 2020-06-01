@@ -5,7 +5,7 @@ import dbus.mainloop.glib
 import vim
 import time
 
-class TeXNineSyncTeX(evince_dbus.EvinceWindowProxy):
+class TeXSevenSyncTeX(evince_dbus.EvinceWindowProxy):
     def __init__(self, target, logger = None):
 
         self.uri = self._path_to_uri(target)

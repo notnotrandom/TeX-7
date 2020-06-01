@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-tex_nine_maths_cache = [
+tex_seven_maths_cache = [
 
     {"word":  r"aleph",               "menu":  "ℵ"},
     {"word":  r"alpha",               "menu":  "α"},

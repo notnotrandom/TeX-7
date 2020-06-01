@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #************************************************************************
 #
-#                     TeX-9 library: Python module
+#                     TeX-7 library: Python module
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -27,10 +27,10 @@ import sys
 # Utility functions
 
 def echoerr(errorstr):
-    sys.stderr.write("TeX-9: {0}\n".format(str(errorstr)))
+    sys.stderr.write("TeX-7: {0}\n".format(str(errorstr)))
 
 def echomsg(msgstr):
-    sys.stdout.write("TeX-9: {0}\n".format(str(msgstr)))
+    sys.stdout.write("TeX-7: {0}\n".format(str(msgstr)))
 
 def get_latex_environment(vim_window):
     """Get information about the current LaTeX environment.
@@ -113,5 +113,5 @@ def find_compiler(vimbuffer, nlines=10):
         #Cannot determine the compiler
         return ""
 
-class TeXNineError(Exception):
+class TeXSevenError(Exception):
     pass

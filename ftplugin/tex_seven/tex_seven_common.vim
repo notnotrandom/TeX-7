@@ -24,13 +24,13 @@
 "************************************************************************
 
 let s:path = fnameescape(expand('<sfile>:h'))
-let b:tex_nine_skeleton = fnameescape(s:path.'/skeleton/tex_skeleton.tex')
-let b:tex_nine_snippets = fnameescape(s:path.'/snippets/tex_snippets.snippets')
+let b:tex_seven_skeleton = fnameescape(s:path.'/skeleton/tex_skeleton.tex')
+let b:tex_seven_snippets = fnameescape(s:path.'/snippets/tex_snippets.snippets')
 let b:bib_nine_snippets = fnameescape(s:path.'/snippets/bib_snippets.snippets')
 let &dictionary = fnameescape(s:path.'/tex_dictionary.txt')
 
 " Defaults
-let b:tex_nine_config = { 
+let b:tex_seven_config = { 
             \    'compiler' : '', 
             \    'verbose' : 0, 
             \    'leader' : '', 
@@ -43,25 +43,25 @@ let b:tex_nine_config = {
             \}
 
 " Override values with user preferences
-if exists('g:tex_nine_config')
-    call extend(b:tex_nine_config, g:tex_nine_config)
-    "unlet g:tex_nine_config
+if exists('g:tex_seven_config')
+    call extend(b:tex_seven_config, g:tex_seven_config)
+    "unlet g:tex_seven_config
 endif
 
 " Configure the leader
-if b:tex_nine_config.leader == ''
+if b:tex_seven_config.leader == ''
     if exists('g:maplocalleader')
-        let b:tex_nine_config.leader = g:maplocalleader
+        let b:tex_seven_config.leader = g:maplocalleader
     elseif exists('g:mapleader')
-        let b:tex_nine_config.leader = g:mapleader
+        let b:tex_seven_config.leader = g:mapleader
     else
-        let b:tex_nine_config.leader = ';'
+        let b:tex_seven_config.leader = ';'
     endif
 endif
 
 " Define Python environment once per Vim session
-if !exists('g:tex_nine_did_python') 
-    let g:tex_nine_did_python = 1
-    let b:tex_nine_config._pypath = s:path
-    exe "pyfile" fnameescape(b:tex_nine_config._pypath.'/__init__.py')
+if !exists('g:tex_seven_did_python') 
+    let g:tex_seven_did_python = 1
+    let b:tex_seven_config._pypath = s:path
+    exe "pyfile" fnameescape(b:tex_seven_config._pypath.'/__init__.py')
 endif

@@ -4,45 +4,45 @@
 " General purpose routines
 "***********************************************************************
 
-function tex_nine#GetMaster()
+function tex_seven#GetMaster()
 python << EOF
 try:
     master_file = document.get_master_file(vim.current.buffer)
-except TeXNineError, e:
+except TeXSevenError, e:
     echoerr(e)
     master_file = ""
 EOF
     return pyeval('master_file')
 endfunction
 
-function tex_nine#GetOutputFile()
+function tex_seven#GetOutputFile()
 python << EOF
 master_output = ""
 try:
     master_output = document.get_master_output(vim.current.buffer)
-except TeXNineError, e:
+except TeXSevenError, e:
     echoerr(e)
     master_output = ""
 EOF
     return pyeval('master_output')
 endfunction
 
-function tex_nine#GetCompiler(config)
+function tex_seven#GetCompiler(config)
 
     " The mode line takes precedence
-    silent! let tex_nine_compiler = pyeval('document.get_compiler(vim.current.buffer)')
+    silent! let tex_seven_compiler = pyeval('document.get_compiler(vim.current.buffer)')
 
     " The compiler was set in vimrc
-    if tex_nine_compiler == "" && a:config.compiler != ""
-        let tex_nine_compiler = a:config.compiler
+    if tex_seven_compiler == "" && a:config.compiler != ""
+        let tex_seven_compiler = a:config.compiler
     endif
 
     " Side effect: configure the compilation flags
-    if &l:makeprg == "" && tex_nine_compiler != ""
-        call tex_nine#ConfigureCompiler(tex_nine_compiler, a:config.synctex, a:config.shell_escape, a:config.extra_args)
+    if &l:makeprg == "" && tex_seven_compiler != ""
+        call tex_seven#ConfigureCompiler(tex_seven_compiler, a:config.synctex, a:config.shell_escape, a:config.extra_args)
     endif
 
-    return tex_nine_compiler
+    return tex_seven_compiler
 
 endfunction
 
@@ -51,16 +51,16 @@ endfunction
 " Viewing and SyncTeXing
 "***********************************************************************
 
-function tex_nine#ViewDocument()
+function tex_seven#ViewDocument()
     echo "Viewing the document...\r"
     python document.view(vim.current.buffer)
 endfunction
 
-function tex_nine#ForwardSearch()
+function tex_seven#ForwardSearch()
 python << EOF
 try:
     document.forward_search(vim.current.buffer, vim.current)
-except TeXNineError, e:
+except TeXSevenError, e:
     echoerr(e)
 EOF
 return
@@ -71,11 +71,11 @@ endfunction
 " Miscellaneous (Omni completion, snippets, headers, bibqueries)
 "***********************************************************************
 
-function tex_nine#UpdateHeader()
+function tex_seven#UpdateHeader()
     python document.update_header(vim.current.buffer)
 endfunction
 
-function tex_nine#InsertSkeleton(skeleton)
+function tex_seven#InsertSkeleton(skeleton)
    python document.insert_skeleton(vim.current.buffer, vim.eval('a:skeleton'))
    update
    edit
@@ -84,7 +84,7 @@ function tex_nine#InsertSkeleton(skeleton)
    setlocal mod
 endfunction
 
-function tex_nine#OmniCompletion(findstart, base)
+function tex_seven#OmniCompletion(findstart, base)
     if a:findstart
         let pos = pyeval('omni.findstart()')
         return pos
@@ -94,7 +94,7 @@ function tex_nine#OmniCompletion(findstart, base)
     endif
 endfunction
 
-function tex_nine#MathCompletion(findstart, base)
+function tex_seven#MathCompletion(findstart, base)
     if a:findstart
         let line = getline('.')
         let start = col('.') - 1
@@ -104,7 +104,7 @@ function tex_nine#MathCompletion(findstart, base)
         endwhile
         return start
     else
-        let compl = pyeval('tex_nine_maths_cache')
+        let compl = pyeval('tex_seven_maths_cache')
         call filter(compl, 'v:val.word =~ "^'.a:base.'"')
         "let res = []
         "for m in compl
@@ -116,22 +116,22 @@ function tex_nine#MathCompletion(findstart, base)
     endif
 endfunction
 
-function tex_nine#Bibquery(cword)
+function tex_seven#Bibquery(cword)
 python << EOF
 try:
     document.bibquery(vim.eval('a:cword'), omni.bibpaths)
-except TeXNineError, e:
+except TeXSevenError, e:
     echoerr(e)
 EOF
 return
 endfunction
 
-function tex_nine#IsLeft(lchar)
+function tex_seven#IsLeft(lchar)
     let left = getline('.')[col('.')-2]
     return left == a:lchar ? 1 : 0
 endfunction
 
-function tex_nine#ChangeFontStyle(style)
+function tex_seven#ChangeFontStyle(style)
     let str = 'di'
     let is_math = pyeval("int(is_latex_math_environment(vim.current.window))")
     let str .= is_math ? '\math'.a:style : '\text'.a:style
@@ -139,7 +139,7 @@ function tex_nine#ChangeFontStyle(style)
     return str
 endfunction
 
-function tex_nine#SmartInsert(keyword, ...)
+function tex_seven#SmartInsert(keyword, ...)
     " Inserts a LaTeX statement and starts omni completion.  If the
     " line already contains the statement and the statement is still
     " incomplete, i.e. missing the closing delimiter, only omni
@@ -179,7 +179,7 @@ function! ListEnvCompletions(A,L,P)
     endif
 endfunction
 
-function tex_nine#InsertSnippet(...)
+function tex_seven#InsertSnippet(...)
         if exists('a:1')
             let s:envkey = a:1
         else
@@ -194,7 +194,7 @@ function tex_nine#InsertSnippet(...)
         endif
 endfunction
 
-function tex_nine#EnvironmentOperator(mode)
+function tex_seven#EnvironmentOperator(mode)
     let pos = pyeval('get_latex_environment(vim.current.window)["range"]')
     if !pos[0] && !pos[1]
         return "\<Esc>"
@@ -212,19 +212,19 @@ endfunction
 " Settings
 "***********************************************************************
 
-function tex_nine#AddBuffer(config)
+function tex_seven#AddBuffer(config)
 python << EOF
-omni = TeXNineOmni()
-document = TeXNineDocument(vim.current.buffer)
+omni = TeXSevenOmni()
+document = TeXSevenDocument(vim.current.buffer)
 
 EOF
 if a:config.synctex == 1
 python << EOF
 try:
     target = document.get_master_output(vim.current.buffer)
-    evince_proxy = tex_nine_synctex.TeXNineSyncTeX(target, logging) 
+    evince_proxy = tex_seven_synctex.TeXSevenSyncTeX(target, logging) 
     document.buffers[vim.current.buffer.name]['synctex'] = evince_proxy
-except (TeXNineError, NameError) as e:
+except (TeXSevenError, NameError) as e:
     msg = 'TeX-9: Failed to connect to an Evince window: {0}'.format(str(e).decode('string_escape'))
     logging.debug(msg)
     pass
@@ -232,47 +232,47 @@ EOF
 endif
 endfunction
 
-function tex_nine#SetAutoCmds(config)
+function tex_seven#SetAutoCmds(config)
 
-    augroup tex_nine
-        au BufWritePre *.tex call tex_nine#UpdateHeader()
+    augroup tex_seven
+        au BufWritePre *.tex call tex_seven#UpdateHeader()
     augroup END
 
-    "au QuickFixCmdPre <buffer> call tex_nine#Premake()
-    "au! tex_nine QuickFixCmdPost 
+    "au QuickFixCmdPre <buffer> call tex_seven#Premake()
+    "au! tex_seven QuickFixCmdPost 
 
     "if a:config.verbose
-    "    au tex_nine QuickFixCmdPost <buffer> call tex_nine#PostmakeVanilla()
+    "    au tex_seven QuickFixCmdPost <buffer> call tex_seven#PostmakeVanilla()
     "else
-    "    au tex_nine QuickFixCmdPost <buffer> call tex_nine#Postmake()
+    "    au tex_seven QuickFixCmdPost <buffer> call tex_seven#Postmake()
     "endif
 endfunction
 
-function tex_nine#Reconfigure(config)
+function tex_seven#Reconfigure(config)
 python << EOF
 try:
     omni.update()
     paths = map(path.basename, omni.bibpaths)
     echomsg("Updated BibTeX databases...using {0}.".format(", ".join(paths)))
-except TeXNineError, e:
+except TeXSevenError, e:
     # It may be not an error. The user may not use BibTeX...
     echomsg("Cannot update BibTeX databases: "+str(e))
 EOF
     
-    silent! let tex_nine_compiler = pyeval('document.get_compiler(vim.current.buffer, update=True)')
+    silent! let tex_seven_compiler = pyeval('document.get_compiler(vim.current.buffer, update=True)')
 
     " Did it succeed?
-    if tex_nine_compiler == "" && a:config.compiler == ""
+    if tex_seven_compiler == "" && a:config.compiler == ""
         python echomsg("Cannot determine the compiler: Make sure the header contains the compiler line or compiler is set in vimrc.")
         return
     endif
 
     " Modeline takes precedence 
-    let tex_nine_compiler = tex_nine_compiler!="" ? tex_nine_compiler : a:config.compiler
+    let tex_seven_compiler = tex_seven_compiler!="" ? tex_seven_compiler : a:config.compiler
 
-    if tex_nine_compiler != ""
-        call tex_nine#ConfigureCompiler(tex_nine_compiler, a:config.synctex, a:config.shell_escape, a:config.extra_args)
-        python echomsg("Updated the compiler...using `{}'.".format(vim.eval('tex_nine_compiler')))
+    if tex_seven_compiler != ""
+        call tex_seven#ConfigureCompiler(tex_seven_compiler, a:config.synctex, a:config.shell_escape, a:config.extra_args)
+        python echomsg("Updated the compiler...using `{}'.".format(vim.eval('tex_seven_compiler')))
     else
         python echomsg("Cannot determine the compiler: Make sure the header contains the compiler line or compiler is set in vimrc.")
     endif
@@ -283,21 +283,21 @@ endfunction
 "***********************************************************************
 
 
-function tex_nine#Compile(deep, config)
+function tex_seven#Compile(deep, config)
 
-    let tex_nine_compiler = tex_nine#GetCompiler(a:config)
-    let master = tex_nine#GetMaster()
+    let tex_seven_compiler = tex_seven#GetCompiler(a:config)
+    let master = tex_seven#GetMaster()
 
-    if tex_nine_compiler == "" || master == ""
+    if tex_seven_compiler == "" || master == ""
         return
-    elseif tex_nine_compiler == "make"
+    elseif tex_seven_compiler == "make"
         silent make!
     else
         update " Autowrite is not enough
         exe "lcd" fnameescape(fnamemodify(master, ':h'))
         unsilent echo "Compiling...\r"
         if a:deep == 1 
-            python document.compile(vim.current.buffer, vim.eval('tex_nine_compiler'))
+            python document.compile(vim.current.buffer, vim.eval('tex_seven_compiler'))
         endif
         " Make and do not jump to the first error
         exe 'silent' 'make!' escape(fnamemodify(master, ':t'), ' ')
@@ -318,7 +318,7 @@ function tex_nine#Compile(deep, config)
 
 endfunction
 
-function tex_nine#ConfigureCompiler(compiler, synctex, shell_escape, extra_args)
+function tex_seven#ConfigureCompiler(compiler, synctex, shell_escape, extra_args)
     " Configure the l:makeprg variable according to user's preference
 
     let &l:makeprg = a:compiler

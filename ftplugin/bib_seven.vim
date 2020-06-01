@@ -7,7 +7,7 @@
 
 "************************************************************************
 "
-"                     TeX-9 library: Python module
+"                     TeX-7 library: Python module
 "
 "    This program is free software: you can redistribute it and/or modify
 "    it under the terms of the GNU General Public License as published by
@@ -28,28 +28,28 @@
 "************************************************************************
 
 if !has('python') 
-    echoerr "TeX-9: a Vim installation with +python is required"
+    echoerr "TeX-7: a Vim installation with +python is required"
     finish
 endif
 
 " Let the user have the last word
-if exists('g:tex_nine_config') && has_key(g:tex_nine_config, 'disable') 
-    if g:tex_nine_config.disable 
+if exists('g:tex_seven_config') && has_key(g:tex_seven_config, 'disable') 
+    if g:tex_seven_config.disable 
         redraw
-        echomsg("TeX-9: Disabled by user.")
+        echomsg("TeX-7: Disabled by user.")
         finish
     endif
 endif
 
 " Load Vimscript only once per buffer
-if exists('b:init_tex_nine')
+if exists('b:init_tex_seven')
     finish
 endif
-let b:init_tex_nine = 1
+let b:init_tex_seven = 1
 
 "***********************************************************************
-ru ftplugin/tex_nine/tex_nine_common.vim
-call tex_nine#AddBuffer(b:tex_nine_config, b:bib_nine_snippets)
+ru ftplugin/tex_seven/tex_seven_common.vim
+call tex_seven#AddBuffer(b:tex_seven_config, b:bib_nine_snippets)
 
 "***********************************************************************
 
@@ -57,9 +57,9 @@ call tex_nine#AddBuffer(b:tex_nine_config, b:bib_nine_snippets)
 if exists('g:maplocalleader')
     let s:maplocalleader_saved = g:maplocalleader
 endif
-let g:maplocalleader = b:tex_nine_config.leader
+let g:maplocalleader = b:tex_seven_config.leader
 
-inoremap <buffer><expr> <LocalLeader>B tex_nine#InsertSnippet()
+inoremap <buffer><expr> <LocalLeader>B tex_seven#InsertSnippet()
 
 " Greek
 inoremap <buffer> <LocalLeader>a \alpha
@@ -126,12 +126,12 @@ inoremap <buffer> <LocalLeader>[ \left[\right]<Esc>F[a
 inoremap <buffer> <LocalLeader>{ \left\{ \right\}<Esc>F a
 
 " Neat insertion of various LaTeX constructs by tapping keys
-inoremap <buffer><expr> _ tex_nine#IsLeft('_') ? '{}<Left>' : '_'
-inoremap <buffer><expr> ^ tex_nine#IsLeft('^') ? '{}<Left>' : '^'
-inoremap <buffer><expr> = tex_nine#IsLeft('=') ? '<BS>&=' : '='
-inoremap <buffer><expr> ~ tex_nine#IsLeft('~') ? '<BS>\approx' : '~'
-"inoremap <buffer><expr> < tex_nine#IsLeft('<') ? '<BS>\ll' : '<'
-"inoremap <buffer><expr> > tex_nine#IsLeft('>') ? '<BS>\gg' : '>'
+inoremap <buffer><expr> _ tex_seven#IsLeft('_') ? '{}<Left>' : '_'
+inoremap <buffer><expr> ^ tex_seven#IsLeft('^') ? '{}<Left>' : '^'
+inoremap <buffer><expr> = tex_seven#IsLeft('=') ? '<BS>&=' : '='
+inoremap <buffer><expr> ~ tex_seven#IsLeft('~') ? '<BS>\approx' : '~'
+"inoremap <buffer><expr> < tex_seven#IsLeft('<') ? '<BS>\ll' : '<'
+"inoremap <buffer><expr> > tex_seven#IsLeft('>') ? '<BS>\gg' : '>'
 
 if exists('s:maplocalleader_saved')
     let g:maplocalleader = s:maplocalleader_saved

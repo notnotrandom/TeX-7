@@ -7,7 +7,7 @@
 
 "************************************************************************
 "
-"                     TeX-9 library: Vim script
+"                     TeX-7 library: Vim script
 "
 "    This program is free software: you can redistribute it and/or modify
 "    it under the terms of the GNU General Public License as published by
@@ -28,35 +28,35 @@
 "************************************************************************
 
 if !has('python') 
-    echoerr "TeX-9: a Vim installation with +python is required"
+    echoerr "TeX-7: a Vim installation with +python is required"
     finish
 endif
 
 " Let the user have the last word
-if exists('g:tex_nine_config') && has_key(g:tex_nine_config, 'disable') 
-    if g:tex_nine_config.disable 
+if exists('g:tex_seven_config') && has_key(g:tex_seven_config, 'disable') 
+    if g:tex_seven_config.disable 
         redraw
-        echomsg("TeX-9: Disabled by user.")
+        echomsg("TeX-7: Disabled by user.")
         finish
     endif
 endif
 
 " Load Vimscript only once per buffer
-if exists('b:init_tex_nine')
+if exists('b:init_tex_seven')
     finish
 endif
-let b:init_tex_nine = 1
+let b:init_tex_seven = 1
 
 "***********************************************************************
-ru ftplugin/tex_nine/tex_nine_common.vim
+ru ftplugin/tex_seven/tex_seven_common.vim
 
 setlocal completeopt=longest,menuone
 setlocal fo=tcq
-setlocal omnifunc=tex_nine#OmniCompletion
-setlocal completefunc=tex_nine#MathCompletion
+setlocal omnifunc=tex_seven#OmniCompletion
+setlocal completefunc=tex_seven#MathCompletion
 
-call tex_nine#AddBuffer(b:tex_nine_config)
-call tex_nine#SetAutoCmds(b:tex_nine_config)
+call tex_seven#AddBuffer(b:tex_seven_config)
+call tex_seven#SetAutoCmds(b:tex_seven_config)
 
 "***********************************************************************
 
@@ -69,40 +69,40 @@ if exists('g:maplocalleader')
     let s:maplocalleader_saved = g:maplocalleader
 endif
 
-let g:maplocalleader = b:tex_nine_config.leader 
+let g:maplocalleader = b:tex_seven_config.leader 
 
 " Templates
-noremap <buffer><silent> <F1> :call tex_nine#InsertSkeleton(b:tex_nine_skeleton.'.xelatex')<CR>
-noremap <buffer><silent> <F2> :call tex_nine#InsertSkeleton(b:tex_nine_skeleton.'.pdflatex')<CR>
-noremap <buffer><silent> <F3> :call tex_nine#InsertSkeleton(b:tex_nine_skeleton.'.latex')<CR>
-noremap <buffer><silent> <F4> :call tex_nine#InsertSkeleton(b:tex_nine_skeleton.'.make')<CR>
+noremap <buffer><silent> <F1> :call tex_seven#InsertSkeleton(b:tex_seven_skeleton.'.xelatex')<CR>
+noremap <buffer><silent> <F2> :call tex_seven#InsertSkeleton(b:tex_seven_skeleton.'.pdflatex')<CR>
+noremap <buffer><silent> <F3> :call tex_seven#InsertSkeleton(b:tex_seven_skeleton.'.latex')<CR>
+noremap <buffer><silent> <F4> :call tex_seven#InsertSkeleton(b:tex_seven_skeleton.'.make')<CR>
 
 " Viewing
-noremap <buffer><silent> <LocalLeader>V :call tex_nine#ViewDocument()<CR>
+noremap <buffer><silent> <LocalLeader>V :call tex_seven#ViewDocument()<CR>
 
 " Compilation
-noremap <buffer><silent> <LocalLeader>k :call tex_nine#Compile(0, b:tex_nine_config)<CR>
-noremap <buffer><silent> <LocalLeader>K :call tex_nine#Compile(1, b:tex_nine_config)<CR>
+noremap <buffer><silent> <LocalLeader>k :call tex_seven#Compile(0, b:tex_seven_config)<CR>
+noremap <buffer><silent> <LocalLeader>K :call tex_seven#Compile(1, b:tex_seven_config)<CR>
 
 " Misc
-noremap <buffer><silent> <LocalLeader>U :call tex_nine#Reconfigure(b:tex_nine_config)<CR>
+noremap <buffer><silent> <LocalLeader>U :call tex_seven#Reconfigure(b:tex_seven_config)<CR>
 noremap <buffer><silent> <LocalLeader>Q :copen<CR>
 noremap <buffer><silent> gd yiB/\\label{<C-R>0}<CR>
-noremap <buffer><silent> gb :call tex_nine#Bibquery(expand('<cword>'))<CR>
+noremap <buffer><silent> gb :call tex_seven#Bibquery(expand('<cword>'))<CR>
 
 " Insert mode mappings
 inoremap <buffer> <LocalLeader><LocalLeader> <LocalLeader>
 inoremap <buffer> <LocalLeader>K 
 inoremap <buffer> <LocalLeader>M \
-inoremap <buffer><expr> <LocalLeader>B tex_nine#InsertSnippet()
-imap <buffer><expr> <LocalLeader>C tex_nine#SmartInsert('\cite{', '\[cC]ite')
-imap <buffer><expr> <LocalLeader>E tex_nine#SmartInsert('\eqref{')
-imap <buffer><expr> <LocalLeader>R tex_nine#SmartInsert('\ref{')
-imap <buffer><expr> <LocalLeader>Z tex_nine#SmartInsert('\includeonly{')
+inoremap <buffer><expr> <LocalLeader>B tex_seven#InsertSnippet()
+imap <buffer><expr> <LocalLeader>C tex_seven#SmartInsert('\cite{', '\[cC]ite')
+imap <buffer><expr> <LocalLeader>E tex_seven#SmartInsert('\eqref{')
+imap <buffer><expr> <LocalLeader>R tex_seven#SmartInsert('\ref{')
+imap <buffer><expr> <LocalLeader>Z tex_seven#SmartInsert('\includeonly{')
 
 " SyncTeX
-if b:tex_nine_config.synctex
-    noremap <buffer><silent> <C-LeftMouse> :call tex_nine#ForwardSearch()<CR>
+if b:tex_seven_config.synctex
+    noremap <buffer><silent> <C-LeftMouse> :call tex_seven#ForwardSearch()<CR>
 endif
 
 " Greek
@@ -174,19 +174,19 @@ inoremap <buffer> <LocalLeader>[ \left[\right]<Esc>F[a
 inoremap <buffer> <LocalLeader>{ \left\{ \right\}<Esc>F a
 
 " Neat insertion of various LaTeX constructs by tapping keys
-inoremap <buffer><expr> _ tex_nine#IsLeft('_') ? '{}<Left>' : '_'
-inoremap <buffer><expr> ^ tex_nine#IsLeft('^') ? '{}<Left>' : '^'
-inoremap <buffer><expr> = tex_nine#IsLeft('=') ? '<BS>&=' : '='
-inoremap <buffer><expr> ~ tex_nine#IsLeft('~') ? '<BS>\approx' : '~'
+inoremap <buffer><expr> _ tex_seven#IsLeft('_') ? '{}<Left>' : '_'
+inoremap <buffer><expr> ^ tex_seven#IsLeft('^') ? '{}<Left>' : '^'
+inoremap <buffer><expr> = tex_seven#IsLeft('=') ? '<BS>&=' : '='
+inoremap <buffer><expr> ~ tex_seven#IsLeft('~') ? '<BS>\approx' : '~'
 
 " These are problematic when you want to type << or >> (C bitshift, C++ operators) 
-inoremap <buffer><expr> < tex_nine#IsLeft('<') ? '<BS>\ll' : '<'
-inoremap <buffer><expr> > tex_nine#IsLeft('>') ? '<BS>\gg' : '>'
+inoremap <buffer><expr> < tex_seven#IsLeft('<') ? '<BS>\ll' : '<'
+inoremap <buffer><expr> > tex_seven#IsLeft('>') ? '<BS>\gg' : '>'
 
 " Robust inner/outer environment operators
-vmap <buffer><expr> ae tex_nine#EnvironmentOperator('outer')
+vmap <buffer><expr> ae tex_seven#EnvironmentOperator('outer')
 omap <buffer><silent> ae :normal vae<CR>
-vmap <buffer><expr> ie tex_nine#EnvironmentOperator('inner')
+vmap <buffer><expr> ie tex_seven#EnvironmentOperator('inner')
 omap <buffer><silent> ie :normal vie<CR>
 
 if exists('s:maplocalleader_saved')
