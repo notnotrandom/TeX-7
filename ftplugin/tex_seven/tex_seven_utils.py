@@ -99,19 +99,5 @@ def is_latex_math_environment(vim_window,
     e = get_latex_environment(vim_window)
     return  bool(environments.search(e['environment']))
 
-def find_compiler(vimbuffer, nlines=10):
-    """Finds the compiler from the header."""
-    lines = "\n".join(vimbuffer[:nlines])
-    if lines:
-        c = re.search("^%\s*Compiler:\s*(\S+)", lines, re.M)
-        if c:
-            return c.group(1).strip()
-        else:
-            return ""
-
-    else:
-        #Cannot determine the compiler
-        return ""
-
 class TeXSevenError(Exception):
     pass

@@ -1,8 +1,7 @@
 " LaTeX filetype plugin
 " Languages:    LaTeX
-" Maintainer:   Elias Toivanen
-" Version:      1.3.13
-" Last Change:  
+" Maintainer:   Óscar Pereira
+" Version:      0.1
 " License:      GPL
 
 "************************************************************************
@@ -23,7 +22,7 @@
 "    along with this program. If not, see <http://www.gnu.org/licenses/>.
 "                    
 "    Copyright Elias Toivanen, 2011-2014
-"
+"    Copyright Óscar Pereira, 2020
 "
 "************************************************************************
 
@@ -48,14 +47,14 @@ endif
 let b:init_tex_seven = 1
 
 "***********************************************************************
-ru ftplugin/tex_seven/tex_seven_common.vim
+runtime ftplugin/tex_seven/tex_seven_common.vim
 
 setlocal completeopt=longest,menuone
 setlocal fo=tcq
 setlocal omnifunc=tex_seven#OmniCompletion
 setlocal completefunc=tex_seven#MathCompletion
 
-call tex_seven#AddBuffer(b:tex_seven_config)
+call tex_seven#InstantiateOmni()
 call tex_seven#SetAutoCmds(b:tex_seven_config)
 
 "***********************************************************************
@@ -71,18 +70,8 @@ endif
 
 let g:maplocalleader = b:tex_seven_config.leader 
 
-" Templates
-noremap <buffer><silent> <F1> :call tex_seven#InsertSkeleton(b:tex_seven_skeleton.'.xelatex')<CR>
-noremap <buffer><silent> <F2> :call tex_seven#InsertSkeleton(b:tex_seven_skeleton.'.pdflatex')<CR>
-noremap <buffer><silent> <F3> :call tex_seven#InsertSkeleton(b:tex_seven_skeleton.'.latex')<CR>
-noremap <buffer><silent> <F4> :call tex_seven#InsertSkeleton(b:tex_seven_skeleton.'.make')<CR>
-
 " Viewing
 noremap <buffer><silent> <LocalLeader>V :call tex_seven#ViewDocument()<CR>
-
-" Compilation
-noremap <buffer><silent> <LocalLeader>k :call tex_seven#Compile(0, b:tex_seven_config)<CR>
-noremap <buffer><silent> <LocalLeader>K :call tex_seven#Compile(1, b:tex_seven_config)<CR>
 
 " Misc
 noremap <buffer><silent> <LocalLeader>U :call tex_seven#Reconfigure(b:tex_seven_config)<CR>
@@ -94,24 +83,22 @@ noremap <buffer><silent> gb :call tex_seven#Bibquery(expand('<cword>'))<CR>
 inoremap <buffer> <LocalLeader><LocalLeader> <LocalLeader>
 inoremap <buffer> <LocalLeader>K 
 inoremap <buffer> <LocalLeader>M \
+inoremap <buffer> <LocalLeader>" ``''<Left><Left>
 inoremap <buffer><expr> <LocalLeader>B tex_seven#InsertSnippet()
-imap <buffer><expr> <LocalLeader>C tex_seven#SmartInsert('\cite{', '\[cC]ite')
-imap <buffer><expr> <LocalLeader>E tex_seven#SmartInsert('\eqref{')
-imap <buffer><expr> <LocalLeader>R tex_seven#SmartInsert('\ref{')
-imap <buffer><expr> <LocalLeader>Z tex_seven#SmartInsert('\includeonly{')
-
-" SyncTeX
-if b:tex_seven_config.synctex
-    noremap <buffer><silent> <C-LeftMouse> :call tex_seven#ForwardSearch()<CR>
-endif
+inoremap <buffer><expr> <LocalLeader>C tex_seven#SmartInsert('\cite{', '\[cC]ite')
+inoremap <buffer><expr> <LocalLeader>E tex_seven#SmartInsert('\eqref{')
+inoremap <buffer><expr> <LocalLeader>R tex_seven#SmartInsert('\ref{')
+inoremap <buffer><expr> <LocalLeader>Z tex_seven#SmartInsert('\includeonly{')
 
 " Greek
 inoremap <buffer> <LocalLeader>a \alpha
 inoremap <buffer> <LocalLeader>b \beta
 inoremap <buffer> <LocalLeader>c \chi
 inoremap <buffer> <LocalLeader>d \delta
-inoremap <buffer> <LocalLeader>e \epsilon
-inoremap <buffer> <LocalLeader>f \phi
+inoremap <buffer> <LocalLeader>e \varepsilon
+inoremap <buffer> <LocalLeader>/e \epsilon
+inoremap <buffer> <LocalLeader>f \varphi
+inoremap <buffer> <LocalLeader>/f \phi
 inoremap <buffer> <LocalLeader>g \gamma
 inoremap <buffer> <LocalLeader>h \eta
 inoremap <buffer> <LocalLeader>k \kappa
@@ -146,26 +133,34 @@ inoremap <buffer> <LocalLeader>Y \Psi
 inoremap <buffer> <LocalLeader>\ \setminus
 inoremap <buffer> <LocalLeader>½ \sqrt{}<Left>
 inoremap <buffer> <LocalLeader>N \nabla
-inoremap <buffer> <LocalLeader>S \sum_{}^{}<Esc>F}i
+inoremap <buffer> <LocalLeader>S \sum_{}^{}<Esc>2F{a
+inoremap <buffer> <LocalLeader>/S \prod_{}^{}<Esc>2F{a
 inoremap <buffer> <LocalLeader>V \vec{}<Left>
-inoremap <buffer> <LocalLeader>I \int\limits_{}^{}<Esc>F}i
-inoremap <buffer> <LocalLeader>0 \emptyset
+inoremap <buffer> <LocalLeader>I \int\limits_{}^{}<Esc>2F{a
+inoremap <buffer> <LocalLeader>0 \varnothing
+inoremap <buffer> <LocalLeader>/0 \emptyset
 inoremap <buffer> <LocalLeader>6 \partial
 inoremap <buffer> <LocalLeader>i \infty
-inoremap <buffer> <LocalLeader>/ \frac{}{}<Esc>F}i
+inoremap <buffer> <LocalLeader>/ \frac{}{}<Esc>2F{a
 inoremap <buffer> <LocalLeader>v \vee
 inoremap <buffer> <LocalLeader>& \wedge
+inoremap <buffer> <LocalLeader>/v \bigvee
+inoremap <buffer> <LocalLeader>/& \bigwedge
 inoremap <buffer> <LocalLeader>@ \circ
-inoremap <buffer> <LocalLeader>* \cdot
+inoremap <buffer> <LocalLeader>* \not
+inoremap <buffer> <LocalLeader>! \neq
+inoremap <buffer> <LocalLeader>~ \neg
 inoremap <buffer> <LocalLeader>= \equiv
-inoremap <buffer> <LocalLeader>- \bigcap
-inoremap <buffer> <LocalLeader>+ \bigcup
+inoremap <buffer> <LocalLeader>- \cap
+inoremap <buffer> <LocalLeader>+ \cup
+inoremap <buffer> <LocalLeader>/- \bigcap
+inoremap <buffer> <LocalLeader>/+ \bigcup
 inoremap <buffer> <LocalLeader>< \leq
 inoremap <buffer> <LocalLeader>> \geq
-inoremap <buffer> <LocalLeader>~ \tilde{}<Left>
-inoremap <buffer> <LocalLeader>^ \hat{}<Left>
-inoremap <buffer> <LocalLeader>_ \bar{}<Left>
-inoremap <buffer> <LocalLeader>. \dot{}<Left>
+inoremap <buffer> <LocalLeader>~ \wildetilde{}<Left>
+inoremap <buffer> <LocalLeader>^ \wildehat{}<Left>
+inoremap <buffer> <LocalLeader>_ \overline{}<Left>
+inoremap <buffer> <LocalLeader>. \cdot<Space>
 inoremap <buffer> <LocalLeader><CR> \nonumber\\<CR>
 
 " Enlarged delimiters
@@ -179,9 +174,9 @@ inoremap <buffer><expr> ^ tex_seven#IsLeft('^') ? '{}<Left>' : '^'
 inoremap <buffer><expr> = tex_seven#IsLeft('=') ? '<BS>&=' : '='
 inoremap <buffer><expr> ~ tex_seven#IsLeft('~') ? '<BS>\approx' : '~'
 
-" These are problematic when you want to type << or >> (C bitshift, C++ operators) 
-inoremap <buffer><expr> < tex_seven#IsLeft('<') ? '<BS>\ll' : '<'
-inoremap <buffer><expr> > tex_seven#IsLeft('>') ? '<BS>\gg' : '>'
+" For angle brackets
+inoremap <buffer> <LocalLeader>« \langle
+inoremap <buffer> <LocalLeader>» \rangle
 
 " Robust inner/outer environment operators
 vmap <buffer><expr> ae tex_seven#EnvironmentOperator('outer')

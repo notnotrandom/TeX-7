@@ -1,13 +1,13 @@
 *tex_nine.txt* 
 
-                                      TeX-9                                  
+                                      TeX-7                                  
 
                         A semi-automatic, prefix-operated                    
                                   LaTeX ftplugin                               
                              with lots of firepower!                         
 
 
-    Author: Elias Toivanen 
+    Author: Elias Toivanen
     Email: See README
     License: GPL
     Version: 1.3.13
@@ -17,7 +17,7 @@
     and Vimish, meaning that focus is on carefully thought-out key mappings
     and features that are already present in a typical Vim installation. If
     you need to write a thesis or research articles and insist on having
-    only one editor for all editing tasks, then TeX-9 is for you!
+    only one editor for all editing tasks, then TeX-7 is for you!
 
     TeX-9 uses Python2.x as its backend and therefore a Vim installation
     with Python support is required. TeX-9 is being developed on Linux
@@ -309,21 +309,23 @@
 
 ==============================================================================
 
-6.  Mappings                                        *tex_nine-mappings*
+6.  Mappings                                        *tex_seven-mappings*
 
     The symbol <LocalLeader> refers to the value of
-    `g:tex_nine_config.leader', |maplocalleader|, |mapleader|. If none of
-    these are set, the default value is semi-colon ';'.
+    `g:tex_seven_config.leader', |maplocalleader|. If none of
+    these are set, the default value is colon ':'.
 
 6.1 Insert mode >
 
         <LocalLeader><LocalLeader>          <LocalLeader>
         <LocalLeader>K                      Dictionary completion
         <LocalLeader>M                      Maths completion 
-        <LocalLeader>C                      Insert a citation
+        <LocalLeader>"                      LaTeX's inverted commas ``''
         <LocalLeader>B                      Insert an environment
-        <LocalLeader>R                      Insert a reference
+        <LocalLeader>C                      Insert a citation
         <LocalLeader>E                      Insert an equation reference
+        <LocalLeader>R                      Insert a reference
+        <LocalLeader>Z                      Insert an \includeonly reference
 <
         Greek
         >
@@ -331,8 +333,10 @@
         <LocalLeader>b                      \beta
         <LocalLeader>c                      \chi
         <LocalLeader>d                      \delta
-        <LocalLeader>e                      \epsilon
-        <LocalLeader>f                      \phi
+        <LocalLeader>e                      \varepsilon
+        <LocalLeader>/e                     \epsilon
+        <LocalLeader>f                      \varphi
+        <LocalLeader>/f                      \phi
         <LocalLeader>g                      \gamma
         <LocalLeader>h                      \eta
         <LocalLeader>k                      \kappa
@@ -363,45 +367,61 @@
 <
         Maths
         >
+        <LocalLeader>\                      \setminus
+        <LocalLeader>½                      \sqrt{}
         <LocalLeader>N                      \nabla
         <LocalLeader>S                      \sum_{}^{}
-        <LocalLeader>I                      \int\limits_{}^{}
+        <LocalLeader>/S                     \prod_{}^{}
         <LocalLeader>V                      \vec{}
-        <LocalLeader>0                      \emptyset
+        <LocalLeader>I                      \int\limits_{}^{}
+        <LocalLeader>0                      \varnothing
+        <LocalLeader>/0                      \emptyset
         <LocalLeader>6                      \partial
         <LocalLeader>i                      \infty
         <LocalLeader>/                      \frac{}{}
         <LocalLeader>v                      \vee
         <LocalLeader>&                      \wedge
+        <LocalLeader>/v                     \bigvee
+        <LocalLeader>/&                     \bigwedge
         <LocalLeader>@                      \circ
-        <LocalLeader>\                      \setminus
+        <LocalLeader>*                      \not
+        <LocalLeader>!                      \neq
+        <LocalLeader>~                      \neg
         <LocalLeader>=                      \equiv
-        <LocalLeader>*                      \cdot
-        <LocalLeader>-                      \bigcap
-        <LocalLeader>+                      \bigcup
+        <LocalLeader>-                      \cap
+        <LocalLeader>+                      \cup
+        <LocalLeader>/-                     \bigcap
+        <LocalLeader>/+                     \bigcup
         <LocalLeader><                      \leq
         <LocalLeader>>                      \geq
-        <LocalLeader>~                      \tilde{}
-        <LocalLeader>^                      \hat{}
-        <LocalLeader>_                      \bar{}
+        <LocalLeader>~                      \widetilde{}
+        <LocalLeader>^                      \widehat{}
+        <LocalLeader>_                      \overline{}
+        <LocalLeader>.                      \cdot
+        <LocalLeader><CR>                   \nonumber\\<CR>
         <LocalLeader>(                      \left(\right)
         <LocalLeader>[                      \left[\right]
         <LocalLeader>{                      \left{\right}
-        <LocalLeader><CR>                   \nonumber\\<CR>
-<
+        <LocalLeader>«                      \langle
+        <LocalLeader>»                      \rangle
+
+        The choice for some mappings, that start with a forward slash
+        '/', might seem odd. The reason is for when are multiple choices,
+        e.g. for the letters phi and epsilon. In those cases, I put the
+        version I prefer best (e.g. \varphi) with the most natural
+        mapping (<LocalLeader>f), and the other one (\phi) with the
+        "slashed" mapping (<LocalLeader>/f). Of course, this means Vim
+        will introduce a slight delay before expanding <LocalLeader>/
+        (to see if it is actually any of the other mappings that also
+        start with a '/'). But as I do not use <LocalLeader>/ much (this
+        is a case I prefer to deal with a snippet from snipMate), this
+        doesn't bother me much.
 
 6.2 Normal Mode >
 
-        <F1> to <F4>                        Insert template files
-        <C-F>                               Jump to next section or chapter
-        <C-B>                               Jump to previous section or chapter
         gd                                  Goto label's declaration
         gb                                  Goto citekey's declaration
-        <LocalLeader>k                      Small compile
-        <LocalLeader>K                      Big compile
         <LocalLeader>V                      View the document
-        <C-LeftMouse>                       SyncTeX: Forward search
-        <LocalLeader>Q                      View the quickfix window
         <LocalLeader>U                      Reconfigure TeX-9
 
 6.4 Extras

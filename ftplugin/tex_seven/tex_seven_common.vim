@@ -1,11 +1,12 @@
-" LaTeX filetype plugin: Common settings
-" Language:     LaTeX (ft=tex), BibTeX (ft=bib)
-" Maintainer:   Elias Toivanen
-" Version:	1.3.13
-" Last Change:	
-" Licence:      GPL
+" LaTeX filetype plugin
+" Languages:    LaTeX
+" Maintainer:   Óscar Pereira
+" Version:      0.1
+" License:      GPL
 
 "************************************************************************
+"
+"                     TeX-7 library: Vim script
 "
 "    This program is free software: you can redistribute it and/or modify
 "    it under the terms of the GNU General Public License as published by
@@ -21,25 +22,20 @@
 "    along with this program. If not, see <http://www.gnu.org/licenses/>.
 "                    
 "    Copyright Elias Toivanen, 2011-2014
+"    Copyright Óscar Pereira, 2020
+"
 "************************************************************************
 
 let s:path = fnameescape(expand('<sfile>:h'))
-let b:tex_seven_skeleton = fnameescape(s:path.'/skeleton/tex_skeleton.tex')
-let b:tex_seven_snippets = fnameescape(s:path.'/snippets/tex_snippets.snippets')
-let b:bib_nine_snippets = fnameescape(s:path.'/snippets/bib_snippets.snippets')
 let &dictionary = fnameescape(s:path.'/tex_dictionary.txt')
 
 " Defaults
 let b:tex_seven_config = { 
-            \    'compiler' : '', 
             \    'verbose' : 0, 
             \    'leader' : '', 
             \    'viewer' : {'app': 'xdg-open', 'target': 'pdf'}, 
             \    'disable' : 0, 
             \    'debug': 0,
-            \    'synctex' : 0,
-            \    'extra_args' : '',
-            \    'shell_escape' : 0
             \}
 
 " Override values with user preferences
@@ -52,10 +48,8 @@ endif
 if b:tex_seven_config.leader == ''
     if exists('g:maplocalleader')
         let b:tex_seven_config.leader = g:maplocalleader
-    elseif exists('g:mapleader')
-        let b:tex_seven_config.leader = g:mapleader
     else
-        let b:tex_seven_config.leader = ';'
+        let b:tex_seven_config.leader = ':'
     endif
 endif
 

@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
+
+# LaTeX filetype plugin
+# Languages:    LaTeX
+# Maintainer:   Óscar Pereira
+# Version:      0.1
+# License:      GPL
+
 #************************************************************************
 #
-#                     TeX-7 library: Python module
+#                     TeX-7 library: Vim script
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,6 +24,7 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.
 #                    
 #    Copyright Elias Toivanen, 2011-2014
+#    Copyright Óscar Pereira, 2020
 #
 #************************************************************************
 
@@ -48,7 +56,6 @@ from string import Template
 config = vim.eval('b:tex_seven_config')
 config['disable'] = int(config['disable'])
 config['debug'] = int(config['debug'])
-config['synctex'] = int(config['synctex'])
 config['verbose'] = int(config['verbose'])
 
 sys.path.extend([config['_pypath']])
@@ -60,19 +67,6 @@ if config['debug']:
     logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 else:
     logging.basicConfig(level=logging.ERROR)
-
-# Control SyncTeX
-# TODO: Python 3 support
-if config['synctex']:
-    if int(vim.eval("has('gui_running')")):
-        if not int(vim.eval("has('python3')")): 
-            logging.debug("TeX-7: Importing tex_seven_synctex") 
-            # NB: Important side effect: Vim will be hooked to the DBus session daemon
-            import tex_seven_synctex
-        else:
-            echoerr("Must not have +python3 when using SyncTeX.")
-    else:
-        echomsg("SyncTeX not available in terminal.")
 
 # Miscellaneous extra settings
 config['_datelabel'] = '%  Last Change:'
@@ -92,7 +86,6 @@ messages = {
         'NO_OUTPUT':  'Output file `{0}\' does not exist.',
         'INVALID_HEADER': r'Missing information in header.',
         'NO_BIBSTYLE': r'No valid bibliography style found in the document.',
-        'NO_COMPILER': r'Compiler unknown.'
 }
 
 class TeXSevenBase(object):
@@ -116,7 +109,6 @@ class TeXSevenBase(object):
             'ft' : vim.eval('&ft'),
             'master': "",
             'buffer': vimbuffer,
-            'synctex': None
         }
 
         self.buffers.setdefault(vimbuffer.name, bufinfo)
@@ -205,6 +197,7 @@ class TeXSevenBase(object):
             return f(self, masterbuffer['buffer'], *args, **kwargs)
 
         return new_f
+# End class TeXSevenBase
 
 class TeXSevenBibTeX(TeXSevenBase):
     """A class to gather BibTeX entries in a list.
@@ -326,6 +319,7 @@ class TeXSevenBibTeX(TeXSevenBase):
                 self._bibpaths.add(p)
         else:
             self.get_bibpaths(vim.current.buffer, update=True)
+# End class TeXSevenBibTeX
 
 class TeXSevenOmni(TeXSevenBibTeX):
     """Vim's omni completion for a LaTeX document.
@@ -358,7 +352,10 @@ class TeXSevenOmni(TeXSevenBibTeX):
         "special" characters such as whitespace.
         """
 
-        vim.command('update')
+        # This fails, but replacing 'update' with 'write' works. But commenting it
+        # out does not seem to hurt anything... See also _included
+        # vim.command('update')
+
         labels = []
         masterbuffer = "\n".join(vimbuffer[:])
         master_folder, basename  = path.split(vimbuffer.name)
@@ -434,7 +431,10 @@ class TeXSevenOmni(TeXSevenBibTeX):
     @TeXSevenBase.multi_file
     def _included(self, vimbuffer):
       pat=re.compile(r'^\s*\\include{(?P<fname>[^,}]+)}', re.MULTILINE)
-      vim.command('update')
+
+      # This fails, but replacing 'update' with 'write' works. But commenting it
+      # out does not seem to hurt anything... See also _labels
+      # vim.command('update')
 
       # If we are not on master file, return.
       if not vimbuffer.name == vim.current.buffer.name:
@@ -504,53 +504,15 @@ class TeXSevenOmni(TeXSevenBibTeX):
             compl = []
 
         return compl
+# End class TeXSevenOmni
 
 class TeXSevenSnippets(object):
     """Snippet engine for TeX-7.
 
     """
-    _snippets = {'tex': {}, 'bib': {}}
 
-    def _parser(self, string):
-        """Returns a 2-tuple with the snippet keyword and corresponding
-        snippet content."""
-
-        # String to list, preserving carriage returns
-        lines = string.splitlines(True) 
-
-        # Format the snippet 
-        lines = [ line.lstrip(' ') for line in lines if
-                 '#' not in line ]
-
-        if lines:
-            snippet = "".join(lines[1:]).rstrip('\n')
-            keyword = str(lines[0].rstrip('\n'))
-            return (keyword, snippet)
-        else:
-            return ()
-
-    def setup_snippets(self, fname, ft):
-        """Builds a dictionary of keyword-snippet pairs.
-
-        Extracts snippets out of ``fname'' whose syntax resembles that
-        of Michael Sander's snipMate plugin. Both BibTeX and LaTeX
-        buffers get their own dictionary.  
-        """
-
-        if self._snippets[ft]:
-            # We have the snippets already
-            return
-
-        logging.debug("TeX-7: Reading snippets from `{0}'.".format(path.basename(fname)))
-        with open(fname) as snipfile:
-
-            # Strip trailing empty lines
-            snippets = snipfile.read().rstrip('\n').split('snippet')
-            snippets = map(self._parser, snippets)
-            snippets = filter(None, snippets) # Remove comments
-            self._snippets[ft] = dict(snippets)
-
-    def insert_snippet(self, keyword, ft):
+    # This is only for .tex files
+    def insert_snippet(self, keyword):
         """Inserts snippets into the current Vim buffer.
         
         Fetches and returns the code snippet corresponding to key
@@ -569,17 +531,9 @@ class TeXSevenSnippets(object):
 
         """
 
-        try:
-            snippet = self._snippets[ft][keyword]
-            snippet = "m`i"+snippet+"``"
-        except KeyError:
-            if ft == 'tex':
-               snippet = ( "\\begin{"+keyword+"}\n\\end{"+keyword+"}" + "O" )
-            elif ft == 'bib':
-                echoerr(messages["INVALID_BIBENTRY_TYPE"].format(keyword))
-                snippet = ""
-
+        snippet = ( "\\begin{"+keyword+"}\n\\end{"+keyword+"}" + "O" )
         return snippet
+# End class TeXSevenSnippets
 
 class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
     """A class to manipulate LaTeX documents in Vim.
@@ -592,7 +546,6 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
     * Launch a viewer application
     * Preview the definition of a BibTeX entry based on its keyword
     * Insert LaTeX/BibTeX code snippets
-    * Send current cursor position to an Evince window for highlighting
 
     Methods that are decorated with TeXSevenBase.multi_file are designed
     to also work in multi-file LaTeX projects.
@@ -619,94 +572,6 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
             raise TeXSevenError(messages['NO_OUTPUT'].format(output))
 
 
-    @TeXSevenBase.multi_file
-    def forward_search(self, vimbuffer, vimcurrent):
-        """Highligts current cursor position in Evince."""
-
-        if self.buffers[vimbuffer.name]['synctex'] is None:
-            try:
-                target = document.get_master_output(vimbuffer)
-                evince_proxy = tex_seven_synctex.TeXSevenSyncTeX(target,
-                                                               logging) 
-                self.buffers[vimbuffer.name]['synctex'] = evince_proxy
-            except TeXSevenError, NameError:
-                return
-
-        s = self.buffers[vimbuffer.name]['synctex']
-        syncstr = "TeX-7: master={0}, row={1[0]}, col={1[1]}" 
-        logging.debug(syncstr.format(vimbuffer.name,
-                                     vimcurrent.window.cursor))
-        s.forward_search(vimcurrent.buffer.name, vimcurrent.window.cursor)
-        return
-
-    @TeXSevenBase.multi_file
-    def compile(self, vimbuffer, compiler):
-        """Compiles the current LaTeX manuscript updating the references.
-
-        """
-
-        cwd, basename = os.path.split(vimbuffer.name)
-
-        tex_cmd = [compiler, '-output-directory='+cwd,
-                   '-interaction=batchmode', basename]
-        bib_cmd = ['bibtex', basename[:-len('.tex')]+'.aux']
-        kwargs = {'stdout': subprocess.PIPE, 'cwd': cwd}
-
-        subprocess.Popen(tex_cmd, **kwargs).wait()
-        stdout, stderr = subprocess.Popen(bib_cmd, **kwargs).communicate() 
-
-        nobibstyle = re.search("found no \\\\bibstyle command",
-                               stdout)
-        matches = re.findall('I didn.t find a database entry for .(\S+).',
-                             stdout)
-        if nobibstyle:
-            self.biberrors.append("Cannot update BibTeX references: "+messages['NO_BIBSTYLE'])
-
-        # BibTeX does not report the location where the undefined entries are :-(
-        for m in matches:
-            self.biberrors.append(messages['INVALID_BIBENTRY'].format(m))
-
-        subprocess.Popen(tex_cmd, **kwargs).wait()
-
-    def get_compiler(self, vimbuffer, update=False):
-        """Returns the name of compiler in the current project.
-
-        Agnostic of global configuration.
-        """
-        try:
-            master = self.get_master_file(vimbuffer)
-            if self.buffers[master].get('compiler') is None or update:
-                compiler = find_compiler(self.buffers[master]['buffer'])
-                if compiler:
-                    self.buffers[vimbuffer.name]['compiler'] = compiler
-                else:
-                    raise TeXSevenError(messages['NO_COMPILER'])
-
-            return self.buffers[vimbuffer.name]['compiler']
-
-        except TeXSevenError, e:
-            echoerr(e)
-            return ""
-        except KeyError:
-            echoerr(messages['MASTER_NOT_ACTIVE'].format(master))
-            return ""
-
-    def postmake(self, ignored=re.compile('Overfull|Underfull')):
-        """Filters invalid and irrelevant error messages that LaTeX
-        compilers produce. Adds BibTeX errors. Relies on Vim's Quickfix mechanism.
-        """
-
-        valid_entry = lambda x: int(x['valid']) and not ignored.search(x['text'])
-        qflist = filter(valid_entry, vim.eval('getqflist()'))
-
-        # Add BibTeX errors
-        while self.biberrors:
-            qflist.append({'filename': vim.current.buffer.name,
-                           'text': self.biberrors.pop(),
-                           'lnum': "1"})
-
-        return qflist
-
     def view(self, vimbuffer):
         """Launches the viewer application.
 
@@ -721,17 +586,6 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
             subprocess.call(cmd, shell=True)
         except TeXSevenError, e:
             echoerr("Cannot determine the output file: "+str(e))
-
-    def insert_skeleton(self, vimbuffer, skeleton_file):
-        """Insert a skeleton of a LaTeX manuscript."""
-
-        with open(skeleton_file) as skeleton:
-            template = Template(skeleton.read())
-            skeleton = template.safe_substitute(_file = path.basename(vimbuffer.name),
-                                                _date_created = strftime(self.timestr),
-                                                _author = getuser())
-
-            vimbuffer[:] = skeleton.splitlines(True)
 
     def update_header(self, vimbuffer, nlines=10):
         """Updates the date label in the header."""
@@ -769,6 +623,3 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
             echomsg(messages["INVALID_BIBENTRY"].format(cword))
 
 logging.debug("TeX-7: Done with the Python module.")
-
-# vim: tw=72 fdm=indent fdn=1
-

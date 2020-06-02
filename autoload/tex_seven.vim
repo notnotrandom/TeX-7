@@ -1,4 +1,30 @@
-" vim: tw=72 
+" LaTeX filetype plugin
+" Languages:    LaTeX
+" Maintainer:   Óscar Pereira
+" Version:      0.1
+" License:      GPL
+
+"************************************************************************
+"
+"                     TeX-7 library: Vim script
+"
+"    This program is free software: you can redistribute it and/or modify
+"    it under the terms of the GNU General Public License as published by
+"    the Free Software Foundation, either version 3 of the License, or
+"    (at your option) any later version.
+"
+"    This program is distributed in the hope that it will be useful,
+"    but WITHOUT ANY WARRANTY; without even the implied warranty of
+"    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+"    GNU General Public License for more details.
+"
+"    You should have received a copy of the GNU General Public License
+"    along with this program. If not, see <http://www.gnu.org/licenses/>.
+"                    
+"    Copyright Elias Toivanen, 2011-2014
+"    Copyright Óscar Pereira, 2020
+"
+"************************************************************************
 
 "***********************************************************************
 " General purpose routines
@@ -27,26 +53,6 @@ EOF
     return pyeval('master_output')
 endfunction
 
-function tex_seven#GetCompiler(config)
-
-    " The mode line takes precedence
-    silent! let tex_seven_compiler = pyeval('document.get_compiler(vim.current.buffer)')
-
-    " The compiler was set in vimrc
-    if tex_seven_compiler == "" && a:config.compiler != ""
-        let tex_seven_compiler = a:config.compiler
-    endif
-
-    " Side effect: configure the compilation flags
-    if &l:makeprg == "" && tex_seven_compiler != ""
-        call tex_seven#ConfigureCompiler(tex_seven_compiler, a:config.synctex, a:config.shell_escape, a:config.extra_args)
-    endif
-
-    return tex_seven_compiler
-
-endfunction
-
-
 "***********************************************************************
 " Viewing and SyncTeXing
 "***********************************************************************
@@ -56,32 +62,12 @@ function tex_seven#ViewDocument()
     python document.view(vim.current.buffer)
 endfunction
 
-function tex_seven#ForwardSearch()
-python << EOF
-try:
-    document.forward_search(vim.current.buffer, vim.current)
-except TeXSevenError, e:
-    echoerr(e)
-EOF
-return
-endfunction
-
-
 "***********************************************************************
 " Miscellaneous (Omni completion, snippets, headers, bibqueries)
 "***********************************************************************
 
 function tex_seven#UpdateHeader()
     python document.update_header(vim.current.buffer)
-endfunction
-
-function tex_seven#InsertSkeleton(skeleton)
-   python document.insert_skeleton(vim.current.buffer, vim.eval('a:skeleton'))
-   update
-   edit
-   " Enter insert mode for safety and set the buffer as modified
-   startinsert
-   setlocal mod
 endfunction
 
 function tex_seven#OmniCompletion(findstart, base)
@@ -169,6 +155,8 @@ function tex_seven#SmartInsert(keyword, ...)
     return a:keyword."}\<Esc>ha"
 endfunction
 
+" Returns the list of completions to be used when asking the user for an
+" environment name, in tex_seven#InsertSnippet.
 function! ListEnvCompletions(A,L,P)
     " Breaks if dictionary is a list but we only support one dictionary
     " at the moment
@@ -179,19 +167,16 @@ function! ListEnvCompletions(A,L,P)
     endif
 endfunction
 
-function tex_seven#InsertSnippet(...)
-        if exists('a:1')
-            let s:envkey = a:1
-        else
-            let s:envkey = input('Environment: ', '', 'custom,ListEnvCompletions')
-        endif
+" Only for .tex files!
+function tex_seven#InsertSnippet()
+  let s:envkey = input('Environment: ', '', 'custom,ListEnvCompletions')
 
-        if s:envkey != "" 
-            python snip = document.insert_snippet(vim.eval('s:envkey'), vim.eval('&ft'))
-            return pyeval('snip')
-        else
-            return "\<Esc>"
-        endif
+  if s:envkey != "" 
+    python snip = document.insert_snippet(vim.eval('s:envkey'))
+    return pyeval('snip')
+  else
+    return "\<Esc>"
+  endif
 endfunction
 
 function tex_seven#EnvironmentOperator(mode)
@@ -212,24 +197,11 @@ endfunction
 " Settings
 "***********************************************************************
 
-function tex_seven#AddBuffer(config)
+function tex_seven#InstantiateOmni()
 python << EOF
 omni = TeXSevenOmni()
 document = TeXSevenDocument(vim.current.buffer)
-
 EOF
-if a:config.synctex == 1
-python << EOF
-try:
-    target = document.get_master_output(vim.current.buffer)
-    evince_proxy = tex_seven_synctex.TeXSevenSyncTeX(target, logging) 
-    document.buffers[vim.current.buffer.name]['synctex'] = evince_proxy
-except (TeXSevenError, NameError) as e:
-    msg = 'TeX-9: Failed to connect to an Evince window: {0}'.format(str(e).decode('string_escape'))
-    logging.debug(msg)
-    pass
-EOF
-endif
 endfunction
 
 function tex_seven#SetAutoCmds(config)
@@ -258,113 +230,4 @@ except TeXSevenError, e:
     # It may be not an error. The user may not use BibTeX...
     echomsg("Cannot update BibTeX databases: "+str(e))
 EOF
-    
-    silent! let tex_seven_compiler = pyeval('document.get_compiler(vim.current.buffer, update=True)')
-
-    " Did it succeed?
-    if tex_seven_compiler == "" && a:config.compiler == ""
-        python echomsg("Cannot determine the compiler: Make sure the header contains the compiler line or compiler is set in vimrc.")
-        return
-    endif
-
-    " Modeline takes precedence 
-    let tex_seven_compiler = tex_seven_compiler!="" ? tex_seven_compiler : a:config.compiler
-
-    if tex_seven_compiler != ""
-        call tex_seven#ConfigureCompiler(tex_seven_compiler, a:config.synctex, a:config.shell_escape, a:config.extra_args)
-        python echomsg("Updated the compiler...using `{}'.".format(vim.eval('tex_seven_compiler')))
-    else
-        python echomsg("Cannot determine the compiler: Make sure the header contains the compiler line or compiler is set in vimrc.")
-    endif
-endfunction
-
-"***********************************************************************
-" Compilation
-"***********************************************************************
-
-
-function tex_seven#Compile(deep, config)
-
-    let tex_seven_compiler = tex_seven#GetCompiler(a:config)
-    let master = tex_seven#GetMaster()
-
-    if tex_seven_compiler == "" || master == ""
-        return
-    elseif tex_seven_compiler == "make"
-        silent make!
-    else
-        update " Autowrite is not enough
-        exe "lcd" fnameescape(fnamemodify(master, ':h'))
-        unsilent echo "Compiling...\r"
-        if a:deep == 1 
-            python document.compile(vim.current.buffer, vim.eval('tex_seven_compiler'))
-        endif
-        " Make and do not jump to the first error
-        exe 'silent' 'make!' escape(fnamemodify(master, ':t'), ' ')
-        lcd -
-    endif
-
-    " Post-process errors
-    if !a:config.verbose
-        call setqflist(pyeval('document.postmake()'))
-    endif
-
-    if (!has("gui_running"))
-        redraw!
-    endif
-
-    let numerrors = len(filter(getqflist(), 'v:val.valid==1'))
-    unsilent echo "Found ".numerrors." Error(s)."
-
-endfunction
-
-function tex_seven#ConfigureCompiler(compiler, synctex, shell_escape, extra_args)
-    " Configure the l:makeprg variable according to user's preference
-
-    let &l:makeprg = a:compiler
-    if &l:makeprg != 'make'
-        let &l:makeprg .= ' -file-line-error -interaction=nonstopmode'
-        if a:synctex
-            let &l:makeprg .= ' -synctex=1'
-        endif
-        if a:shell_escape
-            let &l:makeprg .= ' -shell-escape'
-        endif
-        let &l:makeprg .= ' '.a:extra_args
-    endif
-    let &l:makeprg .= ' $*'
-
-    " TODO: test Makefile
-    " This is taken from vim help, see :help errorformat-LaTeX, with
-    " addition from Srinath Avadhanula <srinath@fastmail.fm>
-    setlocal errorformat=%E!\ LaTeX\ %trror:\ %m,
-                \%E%f:%l:\ %m,
-                \%E!\ %m,
-                \%+WLaTeX\ %.%#Warning:\ %.%#line\ %l%.%#,
-                \%+W%.%#\ at\ lines\ %l--%*\\d,
-                \%WLaTeX\ %.%#Warning:\ %m,
-                \%Cl.%l\ %m,
-                \%+C\ \ %m.,
-                \%+C%.%#-%.%#,
-                \%+C%.%#[]%.%#,
-                \%+C[]%.%#,
-                \%+C%.%#%[{}\\]%.%#,
-                \%+C<%.%#>%.%#,
-                \%C\ \ %m,
-                \%-GSee\ the\ LaTeX%m,
-                \%-GType\ \ H\ <return>%m,
-                \%-G\ ...%.%#,
-                \%-G%.%#\ (C)\ %.%#,
-                \%-G(see\ the\ transcript%.%#),
-                \%-G\\s%#,
-                \%+O(%*[^()])%r,
-                \%+O%*[^()](%*[^()])%r,
-                \%+P(%f%r,
-                \%+P\ %\\=(%f%r,
-                \%+P%*[^()](%f%r,
-                \%+P[%\\d%[^()]%#(%f%r,
-                \%+Q)%r,
-                \%+Q%*[^()])%r,
-                \%+Q[%\\d%*[^()])%r
-
 endfunction
