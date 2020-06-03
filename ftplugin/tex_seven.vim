@@ -27,22 +27,22 @@
 "************************************************************************
 
 if !has('python') 
-    echoerr "TeX-7: a Vim installation with +python is required"
-    finish
+  echoerr "TeX-7: a Vim installation with +python is required"
+  finish
 endif
 
 " Let the user have the last word
 if exists('g:tex_seven_config') && has_key(g:tex_seven_config, 'disable') 
-    if g:tex_seven_config.disable 
-        redraw
-        echomsg("TeX-7: Disabled by user.")
-        finish
-    endif
+  if g:tex_seven_config.disable 
+    redraw
+    echomsg("TeX-7: Disabled by user.")
+    finish
+  endif
 endif
 
 " Load Vimscript only once per buffer
 if exists('b:init_tex_seven')
-    finish
+  finish
 endif
 let b:init_tex_seven = 1
 
@@ -54,7 +54,7 @@ setlocal fo=tcq
 setlocal omnifunc=tex_seven#OmniCompletion
 setlocal completefunc=tex_seven#MathCompletion
 
-call tex_seven#InstantiateOmni()
+call tex_seven#AddBuffer()
 call tex_seven#SetAutoCmds(b:tex_seven_config)
 
 "***********************************************************************
@@ -65,7 +65,7 @@ call tex_seven#SetAutoCmds(b:tex_seven_config)
 
 " Save old leader
 if exists('g:maplocalleader')
-    let s:maplocalleader_saved = g:maplocalleader
+  let s:maplocalleader_saved = g:maplocalleader
 endif
 
 let g:maplocalleader = b:tex_seven_config.leader 
@@ -185,7 +185,7 @@ vmap <buffer><expr> ie tex_seven#EnvironmentOperator('inner')
 omap <buffer><silent> ie :normal vie<CR>
 
 if exists('s:maplocalleader_saved')
-    let g:maplocalleader = s:maplocalleader_saved
+  let g:maplocalleader = s:maplocalleader_saved
 else
-    unlet g:maplocalleader
+  unlet g:maplocalleader
 endif

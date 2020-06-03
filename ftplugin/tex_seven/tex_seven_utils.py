@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
+
+# LaTeX filetype plugin
+# Languages:    Python
+# Maintainer:   Óscar Pereira
+# Version:      0.1
+# License:      GPL
+
 #************************************************************************
 #
-#                     TeX-7 library: Python module
+#                     TeX-7 library: Vim script
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,6 +24,7 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.
 #                    
 #    Copyright Elias Toivanen, 2011-2014
+#    Copyright Óscar Pereira, 2020
 #
 #************************************************************************
 
@@ -27,77 +35,77 @@ import sys
 # Utility functions
 
 def echoerr(errorstr):
-    sys.stderr.write("TeX-7: {0}\n".format(str(errorstr)))
+  sys.stderr.write("TeX-7: {0}\n".format(str(errorstr)))
 
 def echomsg(msgstr):
-    sys.stdout.write("TeX-7: {0}\n".format(str(msgstr)))
+  sys.stdout.write("TeX-7: {0}\n".format(str(msgstr)))
 
 def get_latex_environment(vim_window):
-    """Get information about the current LaTeX environment.
+  """Get information about the current LaTeX environment.
 
-    Returns a dictionary with keys
-    'environment': the name of the current LaTeX environment
-    'range': 2-tuple of the beginning and ending line numbers 
+  Returns a dictionary with keys
+  'environment': the name of the current LaTeX environment
+  'range': 2-tuple of the beginning and ending line numbers 
 
-    """
+  """
 
-    pat = re.compile(r'^\s*\\(begin|end){([^}]+)}')
-    b = list(vim_window.buffer)
-    row = vim_window.cursor[0] - 1
-    environment = ""
-    begin = end = 0
+  pat = re.compile(r'^\s*\\(begin|end){([^}]+)}')
+  b = list(vim_window.buffer)
+  row = vim_window.cursor[0] - 1
+  environment = ""
+  begin = end = 0
 
-    current_line = b[row]
-    head = b[row - 1::-1] # From line above to the start
-    tail = b[row + 1:] # From next line to the end
+  current_line = b[row]
+  head = b[row - 1::-1] # From line above to the start
+  tail = b[row + 1:] # From next line to the end
 
-    c = pat.match(current_line)
-    if c:
-        environment = c.group(2)
-        if c.group(1) == 'end':
-            end = row + 1
-        elif c.group(1) == 'begin':
-            begin = row + 1
+  c = pat.match(current_line)
+  if c:
+    environment = c.group(2)
+    if c.group(1) == 'end':
+      end = row + 1
+    elif c.group(1) == 'begin':
+      begin = row + 1
 
-    if not begin:
-        envs = {}
-        for i, line in enumerate(head):
-            m = pat.match(line)
-            if m:
-                e = m.group(2)
-                envs[m.groups()] = i
-                if ('begin', e) in envs and ('end', e) in envs and envs[('end', e)] < envs[('begin', e)]:
-                    # Eliminate nested environments
-                    del envs[('begin', e)]
-                    del envs[('end', e)]
-                elif ('end', e) not in envs:
-                    begin = row - i
-                    environment = e
-                    break
+  if not begin:
+    envs = {}
+    for i, line in enumerate(head):
+      m = pat.match(line)
+      if m:
+        e = m.group(2)
+        envs[m.groups()] = i
+        if ('begin', e) in envs and ('end', e) in envs and envs[('end', e)] < envs[('begin', e)]:
+          # Eliminate nested environments
+          del envs[('begin', e)]
+          del envs[('end', e)]
+        elif ('end', e) not in envs:
+          begin = row - i
+          environment = e
+          break
 
-    if not end:
-        envs = {}
-        for i, line in enumerate(tail):
-            m = pat.match(line)
-            if m:
-                envs[m.groups()] = i
-                e = m.group(2)
-                if ('begin', e) in envs and ('end', e) in envs: 
-                    #and envs[('end', e)] > envs[('begin', e)]:
-                    # Eliminate nested environments
-                    del envs[('begin', e)]
-                    del envs[('end', e)]
-                elif m.groups() == ('end', environment):
-                    end = row + i + 2
-                    break
+  if not end:
+    envs = {}
+    for i, line in enumerate(tail):
+      m = pat.match(line)
+      if m:
+        envs[m.groups()] = i
+        e = m.group(2)
+        if ('begin', e) in envs and ('end', e) in envs: 
+          #and envs[('end', e)] > envs[('begin', e)]:
+          # Eliminate nested environments
+          del envs[('begin', e)]
+          del envs[('end', e)]
+        elif m.groups() == ('end', environment):
+          end = row + i + 2
+          break
 
-    return {'environment': environment, 'range': (begin, end)}
+  return {'environment': environment, 'range': (begin, end)}
 
 def is_latex_math_environment(vim_window,
-                              environments = re.compile(r"matrix|cases|math|equation|align|array")):
-    """Returns True if the cursor is currently on a maths environment."""
-    e = get_latex_environment(vim_window)
-    return  bool(environments.search(e['environment']))
+                            environments = re.compile(r"matrix|cases|math|equation|align|array")):
+  """Returns True if the cursor is currently on a maths environment."""
+  e = get_latex_environment(vim_window)
+  return  bool(environments.search(e['environment']))
 
 class TeXSevenError(Exception):
-    pass
+  pass

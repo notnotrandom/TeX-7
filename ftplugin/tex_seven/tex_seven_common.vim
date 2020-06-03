@@ -31,31 +31,30 @@ let &dictionary = fnameescape(s:path.'/tex_dictionary.txt')
 
 " Defaults
 let b:tex_seven_config = { 
-            \    'verbose' : 0, 
-            \    'leader' : '', 
-            \    'viewer' : {'app': 'xdg-open', 'target': 'pdf'}, 
-            \    'disable' : 0, 
-            \    'debug': 0,
-            \}
+      \    'verbose' : 0, 
+      \    'leader' : '', 
+      \    'viewer' : {'app': 'xdg-open', 'target': 'pdf'}, 
+      \    'disable' : 0, 
+      \    'debug': 0,
+      \}
 
 " Override values with user preferences
 if exists('g:tex_seven_config')
-    call extend(b:tex_seven_config, g:tex_seven_config)
-    "unlet g:tex_seven_config
+  call extend(b:tex_seven_config, g:tex_seven_config)
 endif
 
 " Configure the leader
 if b:tex_seven_config.leader == ''
-    if exists('g:maplocalleader')
-        let b:tex_seven_config.leader = g:maplocalleader
-    else
-        let b:tex_seven_config.leader = ':'
-    endif
+  if exists('g:maplocalleader')
+    let b:tex_seven_config.leader = g:maplocalleader
+  else
+    let b:tex_seven_config.leader = ':'
+  endif
 endif
 
 " Define Python environment once per Vim session
 if !exists('g:tex_seven_did_python') 
-    let g:tex_seven_did_python = 1
-    let b:tex_seven_config._pypath = s:path
-    exe "pyfile" fnameescape(b:tex_seven_config._pypath.'/__init__.py')
+  let g:tex_seven_did_python = 1
+  let b:tex_seven_config._pypath = s:path
+  exe "pyfile" fnameescape(b:tex_seven_config._pypath.'/__init__.py')
 endif
