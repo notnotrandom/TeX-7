@@ -20,7 +20,7 @@ TeX-9
     statements, but that never got included in the main source. Well, it is
     here now. Another feature is that in the making is allowing that hitting
     `gd` over a \ref, takes you to the corresponding \label, even when they are
-    on different files.
+    on different filesr
 
     Otherwise, this plugin is mostly like its predecessor.
 
