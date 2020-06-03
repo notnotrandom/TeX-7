@@ -4,23 +4,11 @@ TeX-9
     License: GPL
     Version: 0.1
 
-    TeX-7 is a toned-down fork of Elias Toivanen's TeX-9
-    (https://github.com/vim-scripts/TeX-9) vim plugin for LaTeX writing. I like
-    TeX-9 a lot but, even though it is a rather minimalist plugin, it still has
-    some features I think are too much.
+    TeX-7 is a toned-down fork of Elias Toivanen's TeX-9 (https://github.com/vim-scripts/TeX-9) vim plugin for LaTeX writing. I like TeX-9 a lot but, even though it is a rather minimalist plugin, it still has some features I think are too much.
 
-    First and foremost, compiling. LaTeX build process is *not* trivial, and
-    vim is not an IDE. So I removed that part. I also don't think this plugin
-    should provide skeletons, so that's gone too. And SyncTeX configuration
-    heavily depends on the viewer used, so maybe a minimalist plugin is not the
-    best place... I tweaked some of the default mappings to my liking (although
-    the plugin retains TeX-9's ease of customization.)
+    First and foremost, compiling. LaTeX build process is *not* trivial, and vim is not an IDE. So I removed that part. I also don't think this plugin should provide skeletons, so that's gone too. And SyncTeX configuration heavily depends on the viewer used, so maybe a minimalist plugin is not the best place... I tweaked some of the default mappings to my liking (although the plugin retains TeX-9's ease of customization.)
 
-    I few years ago I patched TeX-9 to allow omni completion for \includeonly
-    statements, but that never got included in the main source. Well, it is
-    here now. Another feature is that in the making is allowing that hitting
-    `gd` over a \ref, takes you to the corresponding \label, even when they are
-    on different files.
+    I few years ago I patched TeX-9 to allow omni completion for \includeonly statements, but that never got included in the main source. Well, it is here now. Another feature is that in the making is allowing that hitting `gd` over a \ref, takes you to the corresponding \label, even when they are on different files.
 
     Otherwise, this plugin is mostly like its predecessor.
 
