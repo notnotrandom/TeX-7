@@ -1,32 +1,28 @@
-This is a mirror of http://www.vim.org/scripts/script.php?script_id=3508
-
 TeX-9
                        
-    Author: Elias Toivanen
+    Author: Óscar Pereira
     License: GPL
-    Version: 1.3.13
+    Version: 0.1
 
-    TeX-9 is a ftplugin that aims to enhance the writing experience of high
-    quality documents with LaTeX and Vim. The goal of TeX-9 is to be simple
-    and Vimish, meaning that focus is on carefully thought-out key mappings
-    and features that are already present in a typical Vim installation. If
-    you need to write a thesis or research articles and insist on having only
-    one editor for all editing tasks, then TeX-9 is for you!
+    TeX-7 is a toned-down fork of Elias Toivanen's TeX-9
+    (https://github.com/vim-scripts/TeX-9) vim plugin for LaTeX writing. I like
+    TeX-9 a lot but, even though it is a rather minimalist plugin, it still has
+    some features I think are too much.
 
-    TeX-9 uses Python2.x as its backend and therefore a Vim installation with
-    Python support is required. TeX-9 is being developed on Linux running
-    Vim 7.4.
+    First and foremost, compiling. LaTeX build process is *not* trivial, and
+    vim is not an IDE. So I removed that part. I also don't think this plugin
+    should provide skeletons, so that's gone too. And SyncTeX configuration
+    heavily depends on the viewer used, so maybe a minimalist plugin is not the
+    best place... I tweaked some of the default mappings to my liking (although
+    the plugin retains TeX-9's ease of customization.)
 
-     The main features of TeX-9 are
-        * Compile, debug and launch a document viewer from within Vim
-        * Insert LaTeX code snippets with ease
-        * Powerful text-object for LaTeX environments
-        * Omni-completion of BibTeX database entries and label references
-        * Omni-completion of mathematical symbols
-        * SyncTeX support (for the Evince document viewer)
-        * Filetype specific indentation (courtesy of Johannes Tanzler)
-        * LaTeX2e manual (ported to Vim by Mikolaj Machowski)
-        * No-hassle settings, relatively few mappings
+    I few years ago I patched TeX-9 to allow omni completion for \includeonly
+    statements, but that never got included in the main source. Well, it is
+    here now. Another feature is that in the making is allowing that hitting
+    `gd` over a \ref, takes you to the corresponding \label, even when they are
+    on different files.
+
+    Otherwise, this plugin is mostly like its predecessor.
 
 ==============================================================================
 
