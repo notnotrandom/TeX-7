@@ -332,13 +332,71 @@ class TeXSevenOmni(TeXSevenBibTeX):
 
   *   BibTeX entries
   *   Labels for cross-references
+  *   Paths of \include'd files, so you can jump from \\ref to \\label, even across files
   *   Font names when using `fontspec' or 'unicode-math'
   *   Picture names when using `graphicx' (EPS, PNG, JPG, PDF)
   
   """
+  _incpaths = set([])
+
+  @property
+  def incpaths(self):
+    return self.get_incpaths(vim.current.buffer)
 
   def __init__(self, bibfiles=[]):
     self.keyword = None
+
+  # Lazy load
+  @TeXSevenBase.multi_file
+  def get_incpaths(self, vimbuffer, update=False):
+    """Returns the .tex files \included in a LaTeX project.
+
+    Reads the master file to find out the names of .tex files.
+
+    * Requires the program ``kpsewhich''
+    that is shipped with the standard TeXLive distribution.
+
+    """
+
+    if not self._incpaths or update:
+      # Find out the \include'd files
+      master = vimbuffer.name
+      masterbuffer = "\n".join(vimbuffer[:])
+      if not masterbuffer:
+          e = messages['MASTER_NOT_ACTIVE'].format(path.basename(master))
+          raise TeXSevenError(e)
+      else:
+        # incfiles will be a list of strings, each containing \include{<this name>}
+        incfiles = re.findall(r'\\include{([^}]+)}', masterbuffer)
+
+        # There might not be any \include'd files.
+        if not match:
+          return self._incpaths
+
+        dirname = path.dirname(master)
+
+        # Find the absolute paths of the incfiles.
+        for b in incfiles:
+          if not b.endswith('.tex'):
+              b += '.tex'
+
+          # Check if the included file is in the compilation folder.
+          inctemp = path.join(dirname, b)
+          b = ( inctemp if path.exists(inctemp) else b )
+
+          # Get the path with kspewhich.
+          proc = subprocess.Popen(['kpsewhich','-must-exist', b],
+                                  stdout=subprocess.PIPE)
+          incpath = proc.communicate()[0].strip('\n')
+
+          # kpsewhich return either the full path or an empty
+          # string.
+          if incpath:
+            self._incpaths.add(incpath)
+          else:
+            raise TeXSevenError("Invalid include path!")
+
+    return list(self._incpaths)
 
   @TeXSevenBase.multi_file
   def _labels(self, vimbuffer,
@@ -601,15 +659,15 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
   def bibquery(self, cword, paths):
     """Displays the BibTeX entry under cursor in a preview window."""
 
-    for bibfile in paths:
+    for fname in paths:
       try:
-        with open(bibfile, 'r') as f:
+        with open(fname, 'r') as f:
           txt = f.read()
-          bibfile = bibfile.replace(' ', '\ ')
+          fname = fname.replace(' ', '\ ')
         # First match wins
         if re.search("^@\S+"+cword, txt, re.M):
           cword = "^@\\\S\\\+"+cword
-          vim.command("pedit +/{0} {1}".format(cword, bibfile))
+          vim.command("pedit +/{0} {1}".format(cword, fname))
           vim.command('windo if &pvw|normal zR|endif') # Unfold
           vim.command("redraw") # Needed after opening a preview window.
           return
@@ -621,5 +679,33 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
     # No matches and paths was not the empty list
     if paths:
       echomsg(messages["INVALID_BIBENTRY"].format(cword))
+
+  def incquery(self, cword, paths):
+    """Goes to the \\label entry corresponding to the \\ref entry under cursor."""
+
+    try:
+      vim.command("/\\\\label{{{0}}}".format(cword))
+    except vim.error:
+      # Label not found in current file, so search \include'd files.
+      for fname in paths:
+        try:
+          with open(fname, 'r') as f:
+            txt = f.read()
+            fname = fname.replace(' ', '\ ')
+
+          # First match wins (labels are suppose to be unique).
+          if re.search("\\label\{"+cword+"\}", txt, re.M):
+            vim.command("edit +/{0} {1}".format(cword, fname))
+            return
+
+        except IOError:
+          e = messages["INVALID_BIBFILE"].format(bibfile)
+          echoerr("Cannot lookup `{}': {}".format(cword, e))
+
+      # No matches and paths was not the empty list
+      if paths:
+        echomsg(paths)
+        # echomsg("Could not find {0}".format(cword))
+        # echomsg(messages["INVALID_BIBENTRY"].format(cword))
 
 logging.debug("TeX-7: Done with the Python module.")

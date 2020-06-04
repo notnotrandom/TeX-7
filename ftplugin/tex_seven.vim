@@ -76,8 +76,12 @@ noremap <buffer><silent> <LocalLeader>V :call tex_seven#ViewDocument()<CR>
 " Misc
 noremap <buffer><silent> <LocalLeader>U :call tex_seven#Reconfigure(b:tex_seven_config)<CR>
 noremap <buffer><silent> <LocalLeader>Q :copen<CR>
-noremap <buffer><silent> gd yiB/\\label{<C-R>0}<CR>
-noremap <buffer><silent> gb :call tex_seven#Bibquery(expand('<cword>'))<CR>
+
+" The weird motion before :call etc... is to make this work, on say "\ref{key}",
+" even when the cursor is on the "\ref" part: the motion will place it over the
+" "key" part.
+noremap <buffer><silent> gd F\f{lyi}:call tex_seven#Incquery(expand('<C-R>0'))<CR>
+noremap <buffer><silent> gb F\f{lyi}:call tex_seven#Bibquery(expand('<C-R>0'))<CR>
 
 " Insert mode mappings
 inoremap <buffer> <LocalLeader><LocalLeader> <LocalLeader>

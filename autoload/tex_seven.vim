@@ -112,6 +112,16 @@ EOF
 return
 endfunction
 
+function tex_seven#Incquery(cword)
+python << EOF
+try:
+  document.incquery(vim.eval('a:cword'), omni.incpaths)
+except TeXSevenError, e:
+  echoerr(e)
+EOF
+return
+endfunction
+
 function tex_seven#IsLeft(lchar)
   let left = getline('.')[col('.')-2]
   return left == a:lchar ? 1 : 0
