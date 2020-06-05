@@ -685,11 +685,14 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
       echomsg(messages["INVALID_BIBENTRY"].format(cword))
 
   def incquery(self, cword, paths):
-    """Goes to the \\label entry corresponding to the \\ref entry under cursor."""
+    """Goes, in a preview window, to the \\label entry corresponding to the
+    \\ref entry under cursor."""
 
     try:
       # Search for \label{cword}
-      vim.command("/\\\\label{{{0}}}".format(cword))
+      vim.command("pedit +/\\\\label{{{0}}}".format(cword))
+      vim.command('windo if &pvw|normal zR|endif') # Unfold
+      vim.command("redraw") # Needed after opening a preview window.
     except vim.error:
       # Label not found in current file, so search \include'd files.
       for fname in paths:
@@ -700,7 +703,9 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
 
           # First match wins (labels are suppose to be unique).
           if re.search("\\label\{"+cword+"\}", txt, re.M):
-            vim.command("edit +/{0} {1}".format(cword, fname))
+            vim.command("pedit +/{0} {1}".format(cword, fname))
+            vim.command('windo if &pvw|normal zR|endif') # Unfold
+            vim.command("redraw") # Needed after opening a preview window.
             return
 
         except IOError:
