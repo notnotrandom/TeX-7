@@ -226,6 +226,8 @@ try:
   omni.update()
   paths = map(path.basename, omni.bibpaths)
   echomsg("Updated BibTeX databases...using {0}.".format(", ".join(paths)))
+  paths = map(path.basename, omni.incpaths)
+  echomsg("Updated \include'd files...using {0}.".format(", ".join(paths)))
 except TeXSevenError, e:
 # It may be not an error. The user may not use BibTeX...
   echomsg("Cannot update BibTeX databases: "+str(e))

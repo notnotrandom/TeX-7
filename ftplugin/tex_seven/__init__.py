@@ -311,14 +311,12 @@ class TeXSevenBibTeX(TeXSevenBase):
           self._bibcompletions += self._bibparser(b)
       return self._bibcompletions
 
-    def update(self, bibpaths=[]):
+    def update(self):
       self._bibcompletions = []
       self._bibpaths.clear()
-      if bibpaths:
-        for p in bibpaths: 
-          self._bibpaths.add(p)
-      else:
-        self.get_bibpaths(vim.current.buffer, update=True)
+
+      self.get_bibpaths(vim.current.buffer, update=True)
+
 # End class TeXSevenBibTeX
 
 class TeXSevenOmni(TeXSevenBibTeX):
@@ -370,7 +368,7 @@ class TeXSevenOmni(TeXSevenBibTeX):
         incfiles = re.findall(r'\\include{([^}]+)}', masterbuffer)
 
         # There might not be any \include'd files.
-        if not match:
+        if len(incfiles) == 0:
           return self._incpaths
 
         dirname = path.dirname(master)
@@ -562,6 +560,12 @@ class TeXSevenOmni(TeXSevenBibTeX):
       compl = []
 
     return compl
+
+  def update(self, bibpaths=[]):
+    super(TeXSevenOmni, self).update()
+
+    self.get_incpaths(vim.current.buffer, update=True)
+
 # End class TeXSevenOmni
 
 class TeXSevenSnippets(object):
