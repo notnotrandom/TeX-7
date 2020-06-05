@@ -684,6 +684,7 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
     """Goes to the \\label entry corresponding to the \\ref entry under cursor."""
 
     try:
+      # Search for \label{cword}
       vim.command("/\\\\label{{{0}}}".format(cword))
     except vim.error:
       # Label not found in current file, so search \include'd files.
@@ -699,13 +700,10 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
             return
 
         except IOError:
-          e = messages["INVALID_BIBFILE"].format(bibfile)
-          echoerr("Cannot lookup `{}': {}".format(cword, e))
+          echoerr("Cannot lookup label `{}': {}".format(cword))
 
       # No matches and paths was not the empty list
       if paths:
-        echomsg(paths)
-        # echomsg("Could not find {0}".format(cword))
-        # echomsg(messages["INVALID_BIBENTRY"].format(cword))
+        echomsg("Could not find {0}".format(cword))
 
 logging.debug("TeX-7: Done with the Python module.")
