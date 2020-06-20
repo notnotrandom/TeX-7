@@ -351,9 +351,6 @@ class TeXSevenOmni(TeXSevenBibTeX):
 
     Reads the master file to find out the names of .tex files.
 
-    * Requires the program ``kpsewhich''
-    that is shipped with the standard TeXLive distribution.
-
     """
 
     if not self._incpaths or update:
@@ -365,34 +362,22 @@ class TeXSevenOmni(TeXSevenBibTeX):
           raise TeXSevenError(e)
       else:
         # incfiles will be a list of strings, each containing \include{<this name>}
-        incfiles = re.findall(r'\\include{([^}]+)}', masterbuffer)
+        p = re.compile(r'^\s*\\include{([^}]+)}', re.MULTILINE)
+        incfiles = p.findall(masterbuffer)
 
         # There might not be any \include'd files.
         if len(incfiles) == 0:
           return self._incpaths
-
-        dirname = path.dirname(master)
 
         # Find the absolute paths of the incfiles.
         for b in incfiles:
           if not b.endswith('.tex'):
               b += '.tex'
 
-          # Check if the included file is in the compilation folder.
-          inctemp = path.join(dirname, b)
-          b = ( inctemp if path.exists(inctemp) else b )
-
-          # Get the path with kspewhich.
-          proc = subprocess.Popen(['kpsewhich','-must-exist', b],
-                                  stdout=subprocess.PIPE)
-          incpath = proc.communicate()[0].strip('\n')
-
-          # kpsewhich return either the full path or an empty
-          # string.
-          if incpath:
-            self._incpaths.add(incpath)
+          if path.exists(b):
+            self._incpaths.add(b)
           else:
-            raise TeXSevenError("Invalid include path!")
+            raise TeXSevenError("Invalid include path: %s!" % b)
 
     return list(self._incpaths)
 
@@ -409,7 +394,7 @@ class TeXSevenOmni(TeXSevenBibTeX):
     """
 
     # This fails, but replacing 'update' with 'write' works. But commenting it
-    # out does not seem to hurt anything... See also _included
+    # out does not seem to hurt anything...
     # vim.command('update')
 
     labels = []
@@ -477,33 +462,6 @@ class TeXSevenOmni(TeXSevenBibTeX):
 
     return pics
 
-  # Omni completion for \includeonly.
-  #
-  # As @TeXSevenBase.multi_file is used,vimbuffer.name contains name of
-  # master file, and vim.current.buffer.name contains name of current
-  # file. If the current file is not master, return error, as
-  # \include's can only be used from master. Otherwise return the list
-  # with the matches for \include commands that were found.
-  @TeXSevenBase.multi_file
-  def _included(self, vimbuffer):
-    pat=re.compile(r'^\s*\\include{(?P<fname>[^,}]+)}', re.MULTILINE)
-
-    # This fails, but replacing 'update' with 'write' works. But commenting it
-    # out does not seem to hurt anything... See also _labels
-    # vim.command('update')
-
-    # If we are not on master file, return.
-    if not vimbuffer.name == vim.current.buffer.name:
-      raise TeXSevenError("\include's can only be used in MASTER FILE!!") # XXX this should not be an exception (but only an error message)...
-
-    # Otherwise, find all \include{} commands, and return their
-    # arguments in a list, if any.
-    currentbuffer = "\n".join(vim.current.buffer[:]) # slurp text of current buffer
-    match = pat.findall(currentbuffer)
-    if not match:
-      return None
-    return match
-
   def findstart(self, pat=re.compile(r'\\(\w+)(?:[(].+[)])?(?:[[].+[]])?{?')):
     """Finds the cursor position where completion starts."""
 
@@ -544,16 +502,15 @@ class TeXSevenOmni(TeXSevenBibTeX):
       if self.keyword is not None:
         # Natbib has \Cite.* type of of commands
         if 'cite' in self.keyword or 'Cite' in self.keyword: 
-            compl = self.bibentries
+          compl = self.bibentries
         elif 'ref' in self.keyword:
-            compl = self._labels(vim.current.buffer)
+          compl = self._labels(vim.current.buffer)
         elif 'font' in self.keyword or 'setmath' in self.keyword:
-            compl = self._fonts()
+          compl = self._fonts()
         elif 'includegraphics' in self.keyword:
-            compl = self._pics()
+          compl = self._pics()
         elif 'includeonly' in self.keyword:
-            # compl = self._included()
-            compl = self._included(vim.current.buffer)
+          compl = self.incpaths
 
     except TeXSevenError, e:
       echoerr("Omni completion failed: "+str(e))
