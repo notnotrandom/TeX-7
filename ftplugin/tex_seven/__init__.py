@@ -278,8 +278,7 @@ class TeXSevenBibTeX(TeXSevenBase):
           match = re.search(r'\\(?:bibliography|addbibresource){([^}]+)}',
                             masterbuffer)
           if not match:
-            e = messages['NO_BIBTEX']
-            raise TeXSevenError(e)
+            return [] # The user might not use BiBTeX...
 
           bibfiles = match.group(1).split(',')
           dirname = path.dirname(master)
@@ -371,10 +370,11 @@ class TeXSevenOmni(TeXSevenBibTeX):
 
         # Find the absolute paths of the incfiles.
         for b in incfiles:
-          if not b.endswith('.tex'):
-              b += '.tex'
+          fullpath = b
+          if not fullpath.endswith('.tex'):
+              fullpath += '.tex'
 
-          if path.exists(b):
+          if path.exists(fullpath):
             self._incpaths.add(b)
           else:
             raise TeXSevenError("Invalid include path: %s!" % b)

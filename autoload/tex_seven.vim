@@ -224,10 +224,21 @@ function tex_seven#Reconfigure(config)
 python << EOF
 try:
   omni.update()
-  paths = map(path.basename, omni.bibpaths)
-  echomsg("Updated BibTeX databases...using {0}.".format(", ".join(paths)))
-  paths = map(path.basename, omni.incpaths)
-  echomsg("Updated \include'd files...using {0}.".format(", ".join(omni.incpaths)))
+
+  if omni.bibpaths is not None:
+    paths = map(path.basename, omni.bibpaths)
+    echomsg("Updated BibTeX databases.")
+    # echomsg("Updated BibTeX databases...using {0}.".format(", ".join(paths)))
+  else:
+    echomsg("No BibTeX databases were found.")
+
+  if omni.incpaths is not None:
+    paths = map(path.basename, omni.incpaths)
+    echomsg("Updated \include'd files.")
+    # echomsg("Updated \include'd files...using {0}.".format(", ".join(omni.incpaths)))
+  else:
+    echomsg("No \include'd files were found.")
+
 except TeXSevenError, e:
 # It may be not an error. The user may not use BibTeX...
   echomsg("Update BibTeX and/or \\include'd files failed: "+str(e))
