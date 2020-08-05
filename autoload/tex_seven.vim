@@ -1,5 +1,5 @@
 " LaTeX filetype plugin
-" Languages:    LaTeX
+" Languages:    Python
 " Maintainer:   Óscar Pereira
 " Version:      0.1
 " License:      GPL
@@ -26,10 +26,17 @@
 "
 "************************************************************************
 
-"***********************************************************************
-" General purpose routines
-"***********************************************************************
+" This function is called by $VIMHOME/ftplugin/tex_seven.vim, when a .tex file
+" is first opened. It creates the singletons (if needed), and adds that buffer
+" to the buffer list TeX-7 knows about. See ftplugin/tex_seven/TeXSeven.py.
+function tex_seven#AddBuffer()
+python << EOF
+omni = TeXSevenOmni()
+document = TeXSevenDocument(vim.current.buffer)
+EOF
+endfunction
 
+" Legacy; currently unused. Maybe useful for SyncTeX?
 function tex_seven#GetMaster()
 python << EOF
 try:
@@ -41,6 +48,7 @@ EOF
 return pyeval('master_file')
 endfunction
 
+" Legacy; currently unused. Maybe useful for SyncTeX?
 function tex_seven#GetOutputFile()
 python << EOF
 master_output = ""
@@ -53,23 +61,42 @@ EOF
 return pyeval('master_output')
 endfunction
 
-"***********************************************************************
-" Viewing
-"***********************************************************************
+" Redoes the search for bib files and include'd files.
+function tex_seven#Reconfigure(config)
+python << EOF
+try:
+  omni.update()
+
+  if omni.bibpaths is not None:
+    paths = map(path.basename, omni.bibpaths)
+    echomsg("Updated BibTeX databases.")
+    # echomsg("Updated BibTeX databases...using {0}.".format(", ".join(paths)))
+  else:
+    echomsg("No BibTeX databases were found.")
+
+  if omni.incpaths is not None:
+    paths = map(path.basename, omni.incpaths)
+    echomsg("Updated \include'd files.")
+    # echomsg("Updated \include'd files...using {0}.".format(", ".join(omni.incpaths)))
+  else:
+    echomsg("No \include'd files were found.")
+
+except TeXSevenError, e:
+# It may be not an error. The user may not use BibTeX...
+  echomsg("Update BibTeX and/or \\include'd files failed: "+str(e))
+EOF
+endfunction
 
 function tex_seven#ViewDocument()
   echo "Viewing the document...\r"
   python document.view(vim.current.buffer)
 endfunction
 
-"***********************************************************************
-" Miscellaneous (Omni completion, snippets, headers, bibqueries)
-"***********************************************************************
+"******************************************************************************
+" Omni completion, sub and super scripts, bib and \ref queries, env selection.
+"******************************************************************************
 
-function tex_seven#UpdateHeader()
-  python document.update_header(vim.current.buffer)
-endfunction
-
+" For completion of \ref's, \cite's, etc.
 function tex_seven#OmniCompletion(findstart, base)
   if a:findstart
     let pos = pyeval('omni.findstart()')
@@ -80,6 +107,7 @@ function tex_seven#OmniCompletion(findstart, base)
   endif
 endfunction
 
+" For completion of math symbols, arrows, etc.
 function tex_seven#MathCompletion(findstart, base)
   if a:findstart
     let line = getline('.')
@@ -122,6 +150,7 @@ EOF
 return
 endfunction
 
+" Used for completion of sub and super scripts.
 function tex_seven#IsLeft(lchar)
   let left = getline('.')[col('.')-2]
   return left == a:lchar ? 1 : 0
@@ -135,12 +164,11 @@ function tex_seven#ChangeFontStyle(style)
   return str
 endfunction
 
-function tex_seven#SmartInsert(keyword, ...)
 " Inserts a LaTeX statement and starts omni completion.  If the
 " line already contains the statement and the statement is still
 " incomplete, i.e. missing the closing delimiter, only omni
 " completion is started.
-
+function tex_seven#SmartInsert(keyword, ...)
   let pattern = exists('a:1') ? '\'.a:1.'{' : '\'.a:keyword
   let line = getline('.')
   let pos = col('.')
@@ -165,30 +193,7 @@ function tex_seven#SmartInsert(keyword, ...)
   return a:keyword."}\<Esc>ha"
 endfunction
 
-" Returns the list of completions to be used when asking the user for an
-" environment name, in tex_seven#InsertSnippet.
-function! ListEnvCompletions(A,L,P)
-" Breaks if dictionary is a list but we only support one dictionary
-" at the moment
-  if filereadable(&dictionary)
-    return join(readfile(&dictionary), "\<nl>")
-  else
-    return []
-  endif
-endfunction
-
-" Only for .tex files!
-function tex_seven#InsertSnippet()
-  let s:envkey = input('Environment: ', '', 'custom,ListEnvCompletions')
-
-  if s:envkey != ""
-    python snip = document.insert_snippet(vim.eval('s:envkey'))
-    return pyeval('snip')
-  else
-    return "\<Esc>"
-  endif
-endfunction
-
+" For visual selection operators of inner or outer (current) environment.
 function tex_seven#EnvironmentOperator(mode)
   let pos = pyeval('get_latex_environment(vim.current.window)["range"]')
   if !pos[0] && !pos[1]
@@ -200,47 +205,4 @@ function tex_seven#EnvironmentOperator(mode)
   endif
   let delta = pos[1] - pos[0] > 0 ? (pos[1] - pos[0])."j" : ""
   return "\<Esc>:".pos[0]."\<Enter>V".delta."O"
-endfunction
-
-
-"***********************************************************************
-" Settings
-"***********************************************************************
-
-function tex_seven#AddBuffer()
-python << EOF
-omni = TeXSevenOmni()
-document = TeXSevenDocument(vim.current.buffer)
-EOF
-endfunction
-
-function tex_seven#SetAutoCmds(config)
-  augroup tex_seven
-    au BufWritePre *.tex call tex_seven#UpdateHeader()
-  augroup END
-endfunction
-
-function tex_seven#Reconfigure(config)
-python << EOF
-try:
-  omni.update()
-
-  if omni.bibpaths is not None:
-    paths = map(path.basename, omni.bibpaths)
-    echomsg("Updated BibTeX databases.")
-    # echomsg("Updated BibTeX databases...using {0}.".format(", ".join(paths)))
-  else:
-    echomsg("No BibTeX databases were found.")
-
-  if omni.incpaths is not None:
-    paths = map(path.basename, omni.incpaths)
-    echomsg("Updated \include'd files.")
-    # echomsg("Updated \include'd files...using {0}.".format(", ".join(omni.incpaths)))
-  else:
-    echomsg("No \include'd files were found.")
-
-except TeXSevenError, e:
-# It may be not an error. The user may not use BibTeX...
-  echomsg("Update BibTeX and/or \\include'd files failed: "+str(e))
-EOF
 endfunction

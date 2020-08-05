@@ -55,7 +55,6 @@ setlocal omnifunc=tex_seven#OmniCompletion
 setlocal completefunc=tex_seven#MathCompletion
 
 call tex_seven#AddBuffer()
-call tex_seven#SetAutoCmds(b:tex_seven_config)
 
 "***********************************************************************
 
@@ -80,15 +79,13 @@ noremap <buffer><silent> <LocalLeader>Q :copen<CR>
 " The weird motion before :call etc... is to make this work, on say "\ref{key}",
 " even when the cursor is on the "\ref" part: the motion will place it over the
 " "key" part.
-noremap <buffer><silent> gd F\f{lyi}:call tex_seven#Incquery(expand('<C-R>0'))<CR>
-noremap <buffer><silent> gb F\f{lyi}:call tex_seven#Bibquery(expand('<C-R>0'))<CR>
+noremap <buffer><silent> gd F\vf}y:call tex_seven#Incquery('<C-R>0')<CR>
+noremap <buffer><silent> gb F\vf}y:call tex_seven#Bibquery('<C-R>0')<CR>
 
 " Insert mode mappings
 inoremap <buffer> <LocalLeader><LocalLeader> <LocalLeader>
-inoremap <buffer> <LocalLeader>K 
 inoremap <buffer> <LocalLeader>M \
 inoremap <buffer> <LocalLeader>" ``''<Left><Left>
-inoremap <buffer><expr> <LocalLeader>B tex_seven#InsertSnippet()
 inoremap <buffer><expr> <LocalLeader>C tex_seven#SmartInsert('\cite{', '\[cC]ite')
 inoremap <buffer><expr> <LocalLeader>E tex_seven#SmartInsert('\eqref{')
 inoremap <buffer><expr> <LocalLeader>R tex_seven#SmartInsert('\ref{')

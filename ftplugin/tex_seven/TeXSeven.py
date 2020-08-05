@@ -68,10 +68,6 @@ if config['debug']:
 else:
   logging.basicConfig(level=logging.ERROR)
 
-# Miscellaneous extra settings
-config['_datelabel'] = '%  Last Change:'
-config['_timestr'] = '%Y %b %d'
-
 # Start of the main module
 logging.debug("TeX-7: Entering the Python module.")
 
@@ -84,7 +80,6 @@ messages = {
     'NO_MODELINE':  'Cannot find master file: no modeline or \documentclass statement',
     'MASTER_NOT_ACTIVE': 'Please have the master file `{0}\' open in Vim.',
     'NO_OUTPUT':  'Output file `{0}\' does not exist.',
-    'INVALID_HEADER': r'Missing information in header.',
     'NO_BIBSTYLE': r'No valid bibliography style found in the document.',
 }
 
@@ -111,11 +106,13 @@ class TeXSevenBase(object):
         'buffer': vimbuffer,
     }
 
+    # Note that vimbuffer.name contains the full path!
     self.buffers.setdefault(vimbuffer.name, bufinfo)
     return
 
   def find_master_file(self, vimbuffer, nlines=3):
-    """Finds the filename of the master file in a LaTeX project.
+    """Finds (and returns) the filename (full path) of the master file in a
+    LaTeX project.
 
     Checks if `vimbuffer' contains a \documentclass statement and sets
     the master file to `vimbuffer.name'. Otherwise checks the
@@ -124,7 +121,7 @@ class TeXSevenBase(object):
     % mainfile: <master_file>
 
     where <master_file> is the path of the master file relative to
-    the master file, e.g. ../main.tex.
+    the current file, e.g. ../main.tex.
 
     Raises `TeXSevenError' if master cannot be found.
 
@@ -132,7 +129,7 @@ class TeXSevenBase(object):
 
     # Most often this is the case
     for line in vimbuffer:
-      if '\\documentclass' in line: 
+      if line.startswith('\\documentclass'):
         return vimbuffer.name
 
     # Look for modeline
@@ -162,6 +159,7 @@ class TeXSevenBase(object):
       # Make sure master knows it's the master
       masterinfo = self.buffers.get(master)
       if masterinfo is not None:
+          # masterinfo['master'] = "myself"
           masterinfo['master'] = master
 
     return self.buffers[vimbuffer.name]['master']
@@ -340,7 +338,7 @@ class TeXSevenOmni(TeXSevenBibTeX):
   def incpaths(self):
     return self.get_incpaths(vim.current.buffer)
 
-  def __init__(self, bibfiles=[]):
+  def __init__(self):
     self.keyword = None
 
   # Lazy load
@@ -370,12 +368,13 @@ class TeXSevenOmni(TeXSevenBibTeX):
 
         # Find the absolute paths of the incfiles.
         for b in incfiles:
-          fullpath = b
-          if not fullpath.endswith('.tex'):
-              fullpath += '.tex'
+          echomsg("foo! %s" % b)
+          if not b.endswith('.tex'):
+              b += '.tex'
 
+          fullpath = path.abspath(b)
           if path.exists(fullpath):
-            self._incpaths.add(b)
+            self._incpaths.add(fullpath)
           else:
             raise TeXSevenError("Invalid include path: %s!" % b)
 
@@ -518,65 +517,30 @@ class TeXSevenOmni(TeXSevenBibTeX):
 
     return compl
 
-  def update(self, bibpaths=[]):
+  def update(self):
     super(TeXSevenOmni, self).update()
 
     self.get_incpaths(vim.current.buffer, update=True)
 
 # End class TeXSevenOmni
 
-class TeXSevenSnippets(object):
-  """Snippet engine for TeX-7.
-
-  """
-
-  # This is only for .tex files
-  def insert_snippet(self, keyword):
-    """Inserts snippets into the current Vim buffer.
-    
-    Fetches and returns the code snippet corresponding to key
-    ``keyword'' from the snippet dictionary that belongs to the
-    filetype ``ft''.
-
-    If the snippet is not found, generic environment is inserted in
-    LaTeX files and error is raised in BibTeX files.  After the
-    snippet is inserted, if it is a generic snippet, cursor is left,
-    in insert mode, at the first line inside the environment.
-    Otherwise, it is left in the original position, using Vim's
-    ``context mark'' syntax.
-
-    This method is hooked to a <expr> mapping and thus it returns a
-    string that Vim then automatically indents.
-
-    """
-
-    snippet = ( "\\begin{"+keyword+"}\n\\end{"+keyword+"}" + "O" )
-    return snippet
-# End class TeXSevenSnippets
-
-class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
+class TeXSevenDocument(TeXSevenBase):
   """A class to manipulate LaTeX documents in Vim.
   
-  TeXSevenDocument can
+  TeXSevenDocument can:
 
-  * Insert a skeleton file into the current Vim buffer
-  * Update the dynamic content in the skeleton header
   * Compile a LaTeX document updating the BibTeX references as well
   * Launch a viewer application
   * Preview the definition of a BibTeX entry based on its keyword
-  * Insert LaTeX/BibTeX code snippets
 
   Methods that are decorated with TeXSevenBase.multi_file are designed
-  to also work in multi-file LaTeX projects.
-  
-  """
-  def __init__(self, vimbuffer,
-             date_label=config['_datelabel'],
-             timestr=config['_timestr']):
+  to also work in multi-file LaTeX projects."""
 
+  re_queries = re.compile(r'\\(\S+){(\S+)}')
+  re_bib_queries = re.compile(r'\\(no)?cite(\[.+\])?{(\S+)}')
+
+  def __init__(self, vimbuffer):
     TeXSevenBase.add_buffer(self, vimbuffer)
-    self.date_label = date_label
-    self.timestr = timestr
     self.biberrors = []
 
   @TeXSevenBase.multi_file
@@ -596,8 +560,7 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
 
     The process is started in the background by the system shell.
 
-    WARNING: Requires a *NIX type shell
-    """
+    WARNING: Requires a *NIX type shell"""
 
     try:
       output = self.get_master_output(vimbuffer)
@@ -606,36 +569,33 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
     except TeXSevenError, e:
       echoerr("Cannot determine the output file: "+str(e))
 
-  def update_header(self, vimbuffer, nlines=10):
-    """Updates the date label in the header."""
-
-    date = strftime(self.timestr)
-    if len(vimbuffer) >= nlines and int(vim.eval('&modifiable')):
-      for i in range(nlines):
-        line = str(vimbuffer[i])
-        if self.date_label in line and date not in line:
-          vimbuffer[i] = '{0} {1}'.format(self.date_label, date)
-          return
-
   def bibquery(self, cword, paths):
     """Displays the BibTeX entry under cursor in a preview window."""
 
-    for fname in paths:
-      try:
-        with open(fname, 'r') as f:
-          txt = f.read()
-          fname = fname.replace(' ', '\ ')
-        # First match wins
-        if re.search("^@\S+"+cword, txt, re.M):
-          cword = "^@\\\S\\\+"+cword
-          vim.command("pedit +/{0} {1}".format(cword, fname))
-          vim.command('windo if &pvw|normal zR|endif') # Unfold
-          vim.command("redraw") # Needed after opening a preview window.
-          return
+    try:
+      match = TeXSevenDocument.re_bib_queries.search(cword)
+      if match:
+        key = match.group(3)
+        echomsg(key)
+      else:
+        echomsg('Malformed command: {}'.format(cword))
+        return
 
-      except IOError:
-        e = messages["INVALID_BIBFILE"].format(bibfile)
-        echoerr("Cannot lookup `{}': {}".format(cword, e))
+      for fname in paths:
+          with open(fname, 'r') as f:
+            txt = f.read()
+            fname = fname.replace(' ', '\ ')
+          # First match wins
+          if re.search("^@\S+"+key, txt, re.M):
+            cword = "^@\\\S\\\+"+key
+            vim.command("pedit +/{0} {1}".format(key, fname))
+            vim.command('windo if &pvw|normal zR|endif') # Unfold
+            vim.command("redraw") # Needed after opening a preview window.
+            return
+
+    except IOError:
+      e = messages["INVALID_BIBFILE"].format(bibfile)
+      echoerr("Cannot lookup `{}': {}".format(key, e))
 
     # No matches and paths was not the empty list
     if paths:
@@ -643,33 +603,55 @@ class TeXSevenDocument(TeXSevenBase, TeXSevenSnippets):
 
   def incquery(self, cword, paths):
     """Goes, in a preview window, to the \\label entry corresponding to the
-    \\ref entry under cursor."""
+    \\ref or \\eqref entry under cursor."""
 
+    ref_command = None
     try:
-      # Search for \label{cword}
-      vim.command("pedit +/\\\\label{{{0}}}".format(cword))
+      match = TeXSevenDocument.re_queries.search(cword)
+      if match:
+        ref_command = match.group(1)
+        key = match.group(2)
+      else:
+        echomsg('Malformed command: \\{}'.format(cword))
+        return
+
+      if not (ref_command == 'ref' or ref_command == 'eqref'):
+        echomsg("Functionality not available with command \\{}".format(ref_command))
+        return
+
+      # Search for \label{key}. In the :pedit command, the final % is to ensure
+      # that, if the preview window is already open, it goes back to the
+      # original file, i.e. the file the user was in when the call to this
+      # function was triggered. Otherwise, if the user searches for a label that
+      # is in another file, and then, *without closing the preview window*,
+      # searches for a label that is in the original file, it will not be found
+      # -- because the search will start at the file currently shown in the
+      # preview window.
+      vim.command("pedit +/\\\\label{{{0}}} %".format(key))
       vim.command('windo if &pvw|normal zR|endif') # Unfold
       vim.command("redraw") # Needed after opening a preview window.
-    except vim.error:
+    except vim.error as v:
+      echomsg("foo %s" % str(v))
       # Label not found in current file, so search \include'd files.
       for fname in paths:
+        echomsg(fname)
         try:
           with open(fname, 'r') as f:
             txt = f.read()
             fname = fname.replace(' ', '\ ')
 
           # First match wins (labels are suppose to be unique).
-          if re.search("\\label\{"+cword+"\}", txt, re.M):
-            vim.command("pedit +/{0} {1}".format(cword, fname))
+          if re.search("\\label\{"+key+"\}", txt, re.M):
+            vim.command("pedit +/{0} {1}".format(key, fname))
             vim.command('windo if &pvw|normal zR|endif') # Unfold
             vim.command("redraw") # Needed after opening a preview window.
             return
 
-        except IOError:
-          echoerr("Cannot lookup label `{}': {}".format(cword))
+        except IOError as io:
+          echoerr("Cannot lookup label `{}': {}".format(key, str(io)))
 
       # No matches and paths was not the empty list
       if paths:
-        echomsg("Could not find {0}".format(cword))
+        echomsg("Could not find {0}".format(key))
 
 logging.debug("TeX-7: Done with the Python module.")
