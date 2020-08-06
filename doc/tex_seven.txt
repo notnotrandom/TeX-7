@@ -1,4 +1,4 @@
-*tex_nine.txt* 
+*tex_seven.txt* 
 
                                       TeX-7                                  
 
@@ -7,23 +7,23 @@
                              with lots of firepower!                         
 
 
-    Author: Elias Toivanen
-    Email: See README
+    Author: Óscar Pereira
+    Email: See https://randomwalk.eu
     License: GPL
-    Version: 1.3.13
+    Version: 0.1
 
-    TeX-9 is a ftplugin that aims to enhance the writing experience of high
-    quality documents with LaTeX and Vim. The goal of TeX-9 is to be simple
+    TeX-7 is a ftplugin that aims to enhance the writing experience of high
+    quality documents with LaTeX and Vim. The goal of TeX-7 is to be simple
     and Vimish, meaning that focus is on carefully thought-out key mappings
     and features that are already present in a typical Vim installation. If
     you need to write a thesis or research articles and insist on having
     only one editor for all editing tasks, then TeX-7 is for you!
 
-    TeX-9 uses Python2.x as its backend and therefore a Vim installation
-    with Python support is required. TeX-9 is being developed on Linux
+    TeX-7 uses Python2.x as its backend and therefore a Vim installation
+    with Python support is required. TeX-7 is being developed on Linux
     running Vim 7.4.
 
-     The main features of TeX-9 are
+     The main features of TeX-7 are
         * Compile, debug and launch a document viewer from within Vim
         * Insert LaTeX code snippets with ease
         * Powerful text-object for LaTeX environments 
@@ -42,21 +42,21 @@
 
 ==============================================================================
 
-*TeX-9* *tex_nine*
+*TeX-7* *tex_seven*
 
-    1.  Installation                                 |tex_nine-installation||
-    2.  Basics                                       |tex_nine-basics|
-    3.  Advanced                                     |tex_nine-advanced|
-    4.  Snippets                                     |tex_nine-snippets|
-    5.  BibTeX                                       |tex_nine-bibtex|
-    6.  Mappings                                     |tex_nine-mappings|
-    7.  Tips and trick                               |tex_nine-tips|
+    1.  Installation                                 |tex_seven-installation||
+    2.  Basics                                       |tex_seven-basics|
+    3.  Advanced                                     |tex_seven-advanced|
+    4.  Snippets                                     |tex_seven-snippets|
+    5.  BibTeX                                       |tex_seven-bibtex|
+    6.  Mappings                                     |tex_seven-mappings|
+    7.  Tips and trick                               |tex_seven-tips|
 
 ==============================================================================
 
-1.  Installation                                    *tex_nine-installation*
+1.  Installation                                    *tex_seven-installation*
 
-    TeX-9 is distributed as a gzipped tarball. Unzip it to your local
+    TeX-7 is distributed as a gzipped tarball. Unzip it to your local
     runtime path, usually `~/.vim/'.
 
     Next, open up |vimrc| and ensure it contains the following lines
@@ -65,17 +65,17 @@
         let g:tex_flavor = 'latex'
 <
     For basic usage you don't need to configure anything else. However,
-    you may tweak some features of TeX-9 by defining a |Dictionary| called
-    `g:tex_nine_config' in your vimrc. The following keys are recognized:
+    you may tweak some features of TeX-7 by defining a |Dictionary| called
+    `g:tex_seven_config' in your vimrc. The following keys are recognized:
 
     compiler: String
         *   The TeX compiler you want to use (xelatex, pdflatex, latex, make...)
         *   Recommended setting
-        *   See |tex_nine-advanced| for details.
+        *   See |tex_seven-advanced| for details.
         *   Default: undefined
     
     leader: String
-        *   Most TeX-9 mappings begin with this prefix
+        *   Most TeX-7 mappings begin with this prefix
         *   Optional
         *   Default: The values of |mapleader|  and |maplocalleader| are
             honored. Otherwise set to semi-colon ';'.
@@ -97,7 +97,7 @@
         * Highlight current source code position in a PDF viewer and vice
           versa.
         * GVim/Evince only.
-        * See |tex_nine-advanced| for details
+        * See |tex_seven-advanced| for details
         * Optional
         * Default: 0 (Disabled)
 
@@ -114,31 +114,31 @@
         * Default: ""
 
     disable: Boolean
-        * TeX-9 is disabled temporarily.
-        * Default: 0 (TeX-9 is loaded)
+        * TeX-7 is disabled temporarily.
+        * Default: 0 (TeX-7 is loaded)
 
     Examples: >
 
     " Old school LaTeX user    
-    let g:tex_nine_config = {
+    let g:tex_seven_config = {
         \'compiler': 'latex',
         \'viewer': {'app':'xdvi', 'target':'dvi'},
     \}
 
     " A MacVim user
-    let g:tex_nine_config = {
+    let g:tex_seven_config = {
             \'compiler': 'pdflatex',
             \'viewer': {'app':'open', 'target':'pdf'},
     \}
 
     " Xelatex user who wants SyncTeX support
-    let g:tex_nine_config = {
+    let g:tex_seven_config = {
         \'compiler': 'xelatex',
         \'synctex': 1
     \}
 
     " Makefile users
-    let g:tex_nine_config = {
+    let g:tex_seven_config = {
         \'compiler': 'make',
         \'verbose': 1
     \}
@@ -146,18 +146,22 @@
 
 ==============================================================================
 
-2.  Basics                                          *tex_nine-basics*
+2.  Basics                                          *tex_seven-basics*
 
-    TeX-9 defines various mappings that speed up typesetting LaTeX code. Most
+    TeX-7 defines various mappings that speed up typesetting LaTeX code. Most
     of the mappings are prefixed with a leader referred below with the symbol
-    <LocalLeader>. If you have set `g:tex_nine_config.leader',
+    <LocalLeader>. If you have set `g:tex_seven_config.leader',
     |maplocalleader| or |mapleader|, the corresponding character is used.
-    Otherwise, the leader defaults to semi-colon.
+    Otherwise, the leader defaults to colon (:).
+
+    TeX-7 uses relative paths in several places; hence, especially for
+    multi-file projects, it is recommended to lauch `(g)vim' from the same
+    folder where the main `.tex' file is located.
 
     Below is a short tutorial that should get you going in no time. Users who
     want to use SyncTeX, split their LaTeX manuscripts in several files and/or
     use different kinds of LaTeX compilers at the same time should also read
-    the |tex_nine-advanced| section.
+    the |tex_seven-advanced| section.
 
 2.1. Templates
 
@@ -172,17 +176,17 @@
     Type <LocalLeader>M to get a popup list of different maths symbols. In
     addition, the most frequently used maths symbols have their own
     shortcuts.  Typing <LocalLeader>a expands to \alpha for example. Refer
-    to |tex_nine-mappings| for a complete listing.
+    to |tex_seven-mappings| for a complete listing.
 
     Type <LocalLeader>C to insert a citation, i.e. `\cite{citekey}'. You're
     prompted with a popup list of completions if the \bibliography{} statement
-    contains a valid BibTeX file (see |tex_nine-bibtex| for details). Inserting
+    contains a valid BibTeX file (see |tex_seven-bibtex| for details). Inserting
     references, `\ref{ref}', works in a similar way. The corresponding mapping is
     <LocalLeader>R.
 
     To insert an environment, press <LocalLeader>B. You're prompted for an
     environment name and if a corresponding LaTeX code snippet was defined,
-    it is inserted into the file (see |tex_nine-snippets|).
+    it is inserted into the file (see |tex_seven-snippets|).
 
 2.3. Normal mode
 
@@ -192,7 +196,7 @@
     right. You're informed about potential errors. To go over them, open
     the ||quickfix|| list with <LocalLeader>Q. Typing <LocalLeader>V should
     open the document in your desktop's default PDF viewer, if you didn't
-    set `g:tex_nine_config.viewer' to something else.
+    set `g:tex_seven_config.viewer' to something else.
 
     Should you need advice on LaTeX, consult the LaTeX2e manual with `:help
     latex'.
@@ -200,13 +204,13 @@
 
 ==============================================================================
 
-3.  Advanced                                        *tex_nine-advanced*
+3.  Advanced                                        *tex_seven-advanced*
 
 3.1 Automatic compiler detection/Changing compiler on-the-fly
 
     Some users need to switch between different LaTeX compilers. For this
-    reason TeX-9 allows you to leave the setting `g:tex_nine_config.compiler'
-    undefined and let TeX-9 determine the compiler on a file-by-file basis
+    reason TeX-7 allows you to leave the setting `g:tex_seven_config.compiler'
+    undefined and let TeX-7 determine the compiler on a file-by-file basis
     from a modeline of the form
 >
     %     Compiler: COMPILER
@@ -218,20 +222,20 @@
     
     A recipe for changing the compiler on the fly would be
 
-    1. Yank the entire document environment (see Extras in |tex_nine-mappings|)
+    1. Yank the entire document environment (see Extras in |tex_seven-mappings|)
     2. Change template (<F1>, <F2>, <F3>, <F4>)
     3. Paste the yanked text back in the buffer
     4. Update changes (<LocalLeader>U)
 
     NB! If you are only using one compiler all the time, it is recommended to
-    set `g:tex_nine_config.compiler' in |vimrc|. This way you can compile even
+    set `g:tex_seven_config.compiler' in |vimrc|. This way you can compile even
     your old LaTeX files without problems.
 
 3.2. Multi-file projects
 
     The traditional way to handle multi-file projects is to set up a Makefile
-    and compile with `make'. TeX-9 supports this behavior via the
-    `g:tex_nine_config.compiler' option which can be set to `make'.
+    and compile with `make'. TeX-7 supports this behavior via the
+    `g:tex_seven_config.compiler' option which can be set to `make'.
 
     You can save yourself the trouble of writing a Makefile by indicating the
     relative location of the main file in the \include-ed files with a modeline
@@ -242,16 +246,16 @@
     The string MASTER_FILE could be for example `../main.tex' if the included file
     is in a subdirectory of the actual compilation folder. The modeline may appear
     in the three first or three last lines of the document. This way all the
-    TeX-9 mappings continue to work as expected wherever you are in your
+    TeX-7 mappings continue to work as expected wherever you are in your
     project.
 
     NB! Make sure the filename MASTER_FILE does not contain any whitespace and
     have the main file to be active in Vim (see |active-buffers|). Otherwise
-    TeX-9 cannot access its contents which is required for some features.  
+    TeX-7 cannot access its contents which is required for some features.  
 
-3.3  SyncTeX                                         *tex_nine-synctex*
+3.3  SyncTeX                                         *tex_seven-synctex*
 
-    If you have set `g:tex_nine_config.synctex' and use Evince
+    If you have set `g:tex_seven_config.synctex' and use Evince
     (http://projects.gnome.org/evince), you can Ctrl-click a line in Evince
     and see the corresponding line highlighted in GVim! This is called
     forward searching. Backward searching works similarly: you select a
@@ -266,14 +270,14 @@
 
 ==============================================================================
 
-4.  Snippets                                        *tex_nine-snippets*
+4.  Snippets                                        *tex_seven-snippets*
 
     When you want to insert a LaTeX snippet with <LocalLeader>B,
     notice that the input prompt is <Tab>-completable. Your input is
     matched against words in `tex_dictionary.txt'. Once entered, the
     name of the environment is matched against keywords in the file
     `snippets/tex_snippets.snippets'. Matching snippets are inserted.
-    Otherwise TeX-9 inserts a generic environment in LaTeX manuscripts
+    Otherwise TeX-7 inserts a generic environment in LaTeX manuscripts
     and raises an error in BibTeX files.
     >
         % Generic environment
@@ -283,23 +287,23 @@
 <
     You may extend the snippet file with your own environments and you will
     notice that the syntax bears resemblance with Michael Sander's snipMate
-    plugin (http://www.vim.org/scripts/script.php?script_id=2540). TeX-9
+    plugin (http://www.vim.org/scripts/script.php?script_id=2540). TeX-7
     leaves the <Tab> key untouched so that you may still resort to snipMate
     if you so prefer. If your custom environments is not included in
     `tex_dictionary.txt', append it there. >
             
-        :cd ~/.vim/ftplugin/TeX_9/dictionaries
+        :cd ~/.vim/ftplugin/TeX_7/dictionaries
         :!echo 'new_environment' >> tex_dictionary.txt
 <
 ==============================================================================
 
-5.  BibTeX                                          *tex_nine-bibtex*
+5.  BibTeX                                          *tex_seven-bibtex*
 
     When adding entries in BibTeX databases or appending new databases in the
-    \bibliography{} statement, you need tell TeX-9 to update its citekey
+    \bibliography{} statement, you need tell TeX-7 to update its citekey
     database. This is accomplished by typing <LocalLeader>U in normal mode.
 
-    In addition to citekey completion, TeX-9 provides a preview feature
+    In addition to citekey completion, TeX-7 provides a preview feature
     that makes it easier to work with BibTeX and LaTeX files in the same
     Vim session. You may take a quick peek at a particular BibTeX entry
     by pressing `gb' over its citekey, i.e. \cite{citekey}. This command
@@ -422,11 +426,11 @@
         gd                                  Goto label's declaration
         gb                                  Goto citekey's declaration
         <LocalLeader>V                      View the document
-        <LocalLeader>U                      Reconfigure TeX-9
+        <LocalLeader>U                      Reconfigure TeX-7
 
 6.4 Extras
 
-    TeX-9 comes with a custom `environment operator' (see ||text-objects||).
+    TeX-7 comes with a custom `environment operator' (see ||text-objects||).
     Press 'vie' or 'vae' in normal normal to highlight the current inner
     environment (without the \begin and \end statements) or the outer
     environment respectively. Replace 'v' with another operator to achieve
@@ -452,13 +456,13 @@
 
 ==============================================================================
 
-7.  Tips and trick                                  *tex_nine-tips*
+7.  Tips and trick                                  *tex_seven-tips*
 
-7.1.    Preferred way to override, extend and hack TeX-9
+7.1.    Preferred way to override, extend and hack TeX-7
 
         Create a custom tex.vim file in the after directory, i.e.
         ~/.vim/after/ftplugin/tex.vim. Here you can redefine mappings and
-        extend TeX-9's functionality with your own ideas. If you come up with
+        extend TeX-7's functionality with your own ideas. If you come up with
         something sweet, drop me a line (email address available on Vim.org
         and in the README).
 
@@ -488,13 +492,13 @@
 7.4     SyncTeXing without Evince
 
         It might be possible to get SyncTeX working with some other PDF viewers, but
-        you'd need the write wrapper scripts by yourself. However, there's one TeX-9
+        you'd need the write wrapper scripts by yourself. However, there's one TeX-7
         function that you might find useful. If you want to know the absolute name of
         the PDF file in your project, you can use the function
-        `tex_nine#GetOutputFile()'.
+        `tex_seven#GetOutputFile()'.
 
         To avoid conflicts with Evince, please leave
-        `g:tex_nine_config.synctex' unset and ensure you have
+        `g:tex_seven_config.synctex' unset and ensure you have
 >
              \synctex=1
 <
@@ -507,7 +511,7 @@
 
         >
         let custom_template = expand('$HOME').'/.vim/after/ftplugin/tex_skeleton.tex.custom'
-        noremap <buffer><silent> <F1> :call tex_nine#InsertSkeleton(custom_template)<CR>
+        noremap <buffer><silent> <F1> :call tex_seven#InsertSkeleton(custom_template)<CR>
 <
 
 7.6     Change the typeface of a word, sentence...
@@ -517,11 +521,11 @@
         these mappings to ~/.vim/after/ftplugin/tex.vim.
 
             >
-            vmap <buffer><expr> bf tex_nine#ChangeFontStyle('bf')
-            vmap <buffer><expr> it tex_nine#ChangeFontStyle('it')
-            vmap <buffer><expr> rm tex_nine#ChangeFontStyle('rm')
-            vmap <buffer><expr> sf tex_nine#ChangeFontStyle('sf')
-            vmap <buffer><expr> tt tex_nine#ChangeFontStyle('tt')
+            vmap <buffer><expr> bf tex_seven#ChangeFontStyle('bf')
+            vmap <buffer><expr> it tex_seven#ChangeFontStyle('it')
+            vmap <buffer><expr> rm tex_seven#ChangeFontStyle('rm')
+            vmap <buffer><expr> sf tex_seven#ChangeFontStyle('sf')
+            vmap <buffer><expr> tt tex_seven#ChangeFontStyle('tt')
             vmap <buffer> up di\text{}<Left><C-R>"
 <
         For example, to convert the word under the cursor to boldface, type

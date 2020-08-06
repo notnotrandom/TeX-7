@@ -366,15 +366,15 @@ class TeXSevenOmni(TeXSevenBibTeX):
         if len(incfiles) == 0:
           return self._incpaths
 
-        # Find the absolute paths of the incfiles.
+        # Find the relative paths of the incfiles, and add them to the _incpaths
+        # array. NB: these have to be relative paths, otherwise completion for
+        # say, \includeonly, will yield absolute path, which is not what we want.
         for b in incfiles:
-          echomsg("foo! %s" % b)
           if not b.endswith('.tex'):
               b += '.tex'
 
-          fullpath = path.abspath(b)
-          if path.exists(fullpath):
-            self._incpaths.add(fullpath)
+          if path.exists(b):
+            self._incpaths.add(b)
           else:
             raise TeXSevenError("Invalid include path: %s!" % b)
 
@@ -585,7 +585,7 @@ class TeXSevenDocument(TeXSevenBase):
           with open(fname, 'r') as f:
             txt = f.read()
             fname = fname.replace(' ', '\ ')
-          # First match wins
+          # First match wins.
           if re.search("^@\S+"+key, txt, re.M):
             cword = "^@\\\S\\\+"+key
             vim.command("pedit +/{0} {1}".format(key, fname))
@@ -631,10 +631,8 @@ class TeXSevenDocument(TeXSevenBase):
       vim.command('windo if &pvw|normal zR|endif') # Unfold
       vim.command("redraw") # Needed after opening a preview window.
     except vim.error as v:
-      echomsg("foo %s" % str(v))
       # Label not found in current file, so search \include'd files.
       for fname in paths:
-        echomsg(fname)
         try:
           with open(fname, 'r') as f:
             txt = f.read()
