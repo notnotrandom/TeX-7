@@ -150,6 +150,44 @@ EOF
 return
 endfunction
 
+" The purpose of TeX-7's Incquery (see above), is to take an expression like
+" \ref{key} (or \eqref{key}) as its argument, and go to the corresponding
+" \label{key} statement. In order to do this, it is assumed that the cursor
+" will be somewhere in that expression. I use the vim motions F\vf}y to
+" visually select the entire expression, which is then used as an argument for
+" Inc- or Bibquery. There is just one problem: it does not work if the cursor
+" is on top of the backslash ('\')! In order to sidestep this limitation, I
+" use the function TeXSevenQueryMap, below, which checks if the current
+" character under the cursor is the backslash, and if so, moves on char to the
+" right ('l' motion), and then does the aforementioned motion to select the
+" entire \ref or \eqref expression. And it is this latter function that ends
+" up being mapped (see ftplugin/tex_seven.vim).
+"
+" Similar remarks (mutatis mutandis) apply to function Bibquery, above.
+function tex_seven#QueryMap()
+" Get char under the cursor, and compare it to '\'.
+  if getline('.')[col('.')-1]=='\'
+    normal l
+  endif
+  normal! F\vf}y
+
+" The getreg() function yields the content that last yanked (from the F\vf}y
+" motion above).
+  let aux=getreg()
+  if aux =~? '\\.*ref{'
+    call tex_seven#Incquery(aux)
+  else
+" If we are dealing with a \cite or \nocite entry, then in the case of the
+" former, we could have something like \cite[p.\ 69]{foo}. Dealing with the
+" possible extra backslash, requires a new parsing: we go to the final }, then
+" look backwards for "cite" (the ^M is the <Enter> to execute the search),
+" then go backwards to the first backslash to the left, then visually select
+" everything from that backslash up to the final } -- and then yank it.
+    normal! f}?citeF\vf}y
+    call tex_seven#Bibquery(getreg())
+  endif
+endfunction
+
 " Used for completion of sub and super scripts.
 function tex_seven#IsLeft(lchar)
   let left = getline('.')[col('.')-2]

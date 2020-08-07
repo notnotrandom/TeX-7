@@ -88,6 +88,7 @@ class TeXSevenBase(object):
 
   _instance = None
   buffers = {}
+  regexp_modeline = re.compile(r'^\s*%\s*mainfile:\s*(\S+)')
 
   def __new__(self, *args, **kwargs):
     if self._instance is None:
@@ -97,8 +98,8 @@ class TeXSevenBase(object):
   def add_buffer(self, vimbuffer):
     """Add vimbuffer to buffers.
     
-    Does not override existing entries.
-    """
+    Does not override existing entries."""
+
     logging.debug("TeX-7: Adding `{0}\' to buffer dict.".format(vimbuffer.name))
     bufinfo = {
         'ft' : vim.eval('&ft'),
@@ -123,9 +124,7 @@ class TeXSevenBase(object):
     where <master_file> is the path of the master file relative to
     the current file, e.g. ../main.tex.
 
-    Raises `TeXSevenError' if master cannot be found.
-
-    """
+    Raises `TeXSevenError' if master cannot be found."""
 
     # Most often this is the case
     for line in vimbuffer:
@@ -134,7 +133,7 @@ class TeXSevenBase(object):
 
     # Look for modeline
     for line in vimbuffer[:nlines]+vimbuffer[-nlines:]:
-      match = re.search(r'^\s*%\s*mainfile:\s*(\S+)', line)
+      match = TeXSevenBase.regexp_modeline.search(line)
       if match:
         master_file = path.join(path.dirname(vimbuffer.name),
                                 match.group(1))
@@ -536,8 +535,11 @@ class TeXSevenDocument(TeXSevenBase):
   Methods that are decorated with TeXSevenBase.multi_file are designed
   to also work in multi-file LaTeX projects."""
 
-  re_queries = re.compile(r'\\(\S+){(\S+)}')
-  re_bib_queries = re.compile(r'\\(no)?cite(\[.+\])?{(\S+)}')
+  # To match things like \ref{foo} or \eqref{bar}.
+  regexp_incqueries = re.compile(r'\\(\S+){(\S+)}')
+
+  # To match things like \cite[ibid.]{foo} or \nocite{bar} or \cite{baz}.
+  regexp_bibqueries = re.compile(r'\\(no)?cite.?(\[.+\])?{(\S+)}')
 
   def __init__(self, vimbuffer):
     TeXSevenBase.add_buffer(self, vimbuffer)
@@ -573,7 +575,7 @@ class TeXSevenDocument(TeXSevenBase):
     """Displays the BibTeX entry under cursor in a preview window."""
 
     try:
-      match = TeXSevenDocument.re_bib_queries.search(cword)
+      match = TeXSevenDocument.regexp_bibqueries.search(cword)
       if match:
         key = match.group(3)
         echomsg(key)
@@ -606,50 +608,41 @@ class TeXSevenDocument(TeXSevenBase):
     \\ref or \\eqref entry under cursor."""
 
     ref_command = None
-    try:
-      match = TeXSevenDocument.re_queries.search(cword)
-      if match:
-        ref_command = match.group(1)
-        key = match.group(2)
-      else:
-        echomsg('Malformed command: \\{}'.format(cword))
+    match = TeXSevenDocument.regexp_incqueries.search(cword)
+    if match:
+      ref_command = match.group(1)
+      key = match.group(2)
+    else:
+      echomsg('Malformed command: \\{}'.format(cword))
+      return
+
+    if not (ref_command == 'ref' or ref_command == 'eqref'):
+      echomsg("Functionality not available with command \\{}".format(ref_command))
+      return
+
+    # Label not found in current file, so search \include'd files.
+    for fname in [vim.current.buffer.name] + paths:
+      try:
+        with open(fname, 'r') as f:
+          txt = f.read()
+          fname = fname.replace(' ', '\ ')
+      except IOError as io:
+        echoerr("Cannot lookup label `{}': {}".format(key, str(io)))
         return
 
-      if not (ref_command == 'ref' or ref_command == 'eqref'):
-        echomsg("Functionality not available with command \\{}".format(ref_command))
-        return
-
-      # Search for \label{key}. In the :pedit command, the final % is to ensure
-      # that, if the preview window is already open, it goes back to the
-      # original file, i.e. the file the user was in when the call to this
-      # function was triggered. Otherwise, if the user searches for a label that
-      # is in another file, and then, *without closing the preview window*,
-      # searches for a label that is in the original file, it will not be found
-      # -- because the search will start at the file currently shown in the
-      # preview window.
-      vim.command("pedit +/\\\\label{{{0}}} %".format(key))
-      vim.command('windo if &pvw|normal zR|endif') # Unfold
-      vim.command("redraw") # Needed after opening a preview window.
-    except vim.error as v:
-      # Label not found in current file, so search \include'd files.
-      for fname in paths:
+      # First match wins (labels are suppose to be unique).
+      if re.search("\\label\{"+key+"\}", txt, re.M):
         try:
-          with open(fname, 'r') as f:
-            txt = f.read()
-            fname = fname.replace(' ', '\ ')
+          vim.command("pedit +/{0} {1}".format(key, fname))
+          vim.command('windo if &pvw|normal zR|endif') # Unfold
+          vim.command("redraw") # Needed after opening a preview window.
+        except vim.error as v:
+          echomsg("Vim error {}".format(str(v)))
 
-          # First match wins (labels are suppose to be unique).
-          if re.search("\\label\{"+key+"\}", txt, re.M):
-            vim.command("pedit +/{0} {1}".format(key, fname))
-            vim.command('windo if &pvw|normal zR|endif') # Unfold
-            vim.command("redraw") # Needed after opening a preview window.
-            return
+        return
 
-        except IOError as io:
-          echoerr("Cannot lookup label `{}': {}".format(key, str(io)))
-
-      # No matches and paths was not the empty list
-      if paths:
-        echomsg("Could not find {0}".format(key))
+    # If control reaches here, then no matches were found, either on the
+    # current file, or in the \include'd ones.
+    echomsg("Could not find label for key: {0}".format(key))
 
 logging.debug("TeX-7: Done with the Python module.")
