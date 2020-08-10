@@ -220,7 +220,7 @@ class TeXSevenBibTeX(TeXSevenBase):
     
     """
 
-    _bibcompletions = []
+    _bibentries = []
     _bibpaths = set([])
 
     def _bibparser(self, fname):
@@ -237,13 +237,6 @@ class TeXSevenBibTeX(TeXSevenBase):
     @property
     def bibpaths(self):
       return self.get_bibpaths(vim.current.buffer)
-
-    @bibpaths.setter
-    def set_bibpaths(self, paths):
-      for p in paths:
-        self._bibpaths.add(p)
-      self._bibcompletions = []
-      return
 
     @property
     def bibentries(self):
@@ -301,14 +294,14 @@ class TeXSevenBibTeX(TeXSevenBase):
 
     def get_bibentries(self):
       """Returns a list of BibTeX entries found in the BibTeX files."""
-      if not self._bibcompletions:
+      if not self._bibentries:
         bibpaths = self.get_bibpaths(vim.current.buffer)
         for b in bibpaths:
-          self._bibcompletions += self._bibparser(b)
-      return self._bibcompletions
+          self._bibentries += self._bibparser(b)
+      return self._bibentries
 
     def update(self):
-      self._bibcompletions = []
+      self._bibentries = []
       self._bibpaths.clear()
 
       self.get_bibpaths(vim.current.buffer, update=True)
