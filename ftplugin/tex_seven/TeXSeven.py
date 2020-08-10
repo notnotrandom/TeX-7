@@ -240,7 +240,7 @@ class TeXSevenBibTeX(TeXSevenBase):
 
     @bibpaths.setter
     def set_bibpaths(self, paths):
-      for p in paths: 
+      for p in paths:
         self._bibpaths.add(p)
       self._bibcompletions = []
       return
@@ -256,7 +256,7 @@ class TeXSevenBibTeX(TeXSevenBase):
 
       Reads the master file to find out the names of BibTeX files.
       Files in the compilation folder take precedence over files
-      located in a TDS tree[1]. 
+      located in a TDS tree[1].
 
       * Requires the program ``kpsewhich''
       that is shipped with the standard TeXLive distribution.
