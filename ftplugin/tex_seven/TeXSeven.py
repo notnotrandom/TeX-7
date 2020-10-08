@@ -350,7 +350,8 @@ class TeXSevenOmni(TeXSevenBibTeX):
           e = messages['MASTER_NOT_ACTIVE'].format(path.basename(master))
           raise TeXSevenError(e)
       else:
-        # incfiles will be a list of strings, each containing \include{<this name>}
+        # incfiles will be a list of strings, each containing the string inside
+        # the curly brackets: \include{...}
         p = re.compile(r'^\s*\\include{([^}]+)}', re.MULTILINE)
         incfiles = p.findall(masterbuffer)
 
@@ -362,10 +363,11 @@ class TeXSevenOmni(TeXSevenBibTeX):
         # array. NB: these have to be relative paths, otherwise completion for
         # say, \includeonly, will yield absolute path, which is not what we want.
         for b in incfiles:
-          if not b.endswith('.tex'):
-              b += '.tex'
+          if b.endswith('.tex'):
+            raise TeXSevenError("\include'd files cannot contain .tex extension: %s!" % b)
 
-          if path.exists(b):
+          # To check if the file actually exists, we need to add its extension.
+          if path.exists(b + '.tex'):
             self._incpaths.add(b)
           else:
             raise TeXSevenError("Invalid include path: %s!" % b)
