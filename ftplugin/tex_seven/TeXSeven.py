@@ -276,15 +276,16 @@ class TeXSevenBibTeX(TeXSevenBase):
           for b in bibfiles:
             if not b.endswith('.bib'):
                 b += '.bib'
-            # Check if the bibfile is in the compilation folder
+
+            # Check if the .bib file is in the compilation folder.
             bibtemp = path.join(dirname, b)
             b = ( bibtemp if path.exists(bibtemp) else b )
-            # Get the path with kspewhich
+            # Get the full path with kspewhich.
             proc = subprocess.Popen(['kpsewhich','-must-exist', b],
                                     stdout=subprocess.PIPE)
-            bibpath = proc.communicate()[0].strip('\n')
-            # kpsewhich return either the full path or an empty
-            # string.
+            bibpath = proc.communicate()[0].strip(b'\n').decode("utf-8")
+
+            # kpsewhich returns either the full path or an empty string.
             if bibpath:
               self._bibpaths.add(bibpath)
             else:
@@ -419,7 +420,7 @@ class TeXSevenOmni(TeXSevenBibTeX):
           inc_labels = re.findall(r'\\label{(?P<label>[^,}]+)}', f.read())
           inc_labels = [dict(word=i, menu=fname) for i in inc_labels]
           labels += inc_labels
-      except IOError, e:
+      except IOError as e:
         # Do not raise an error because the \include statement might
         # be commented
         logging.debug(str(e).decode('string_escape'))
@@ -455,7 +456,8 @@ class TeXSevenOmni(TeXSevenBibTeX):
 
     return pics
 
-  def findstart(self, pat=re.compile(r'\\(\w+)(?:[(].+[)])?(?:[[].+[]])?{?')):
+  # def findstart(self, pat):
+  def findstart(self, pat=re.compile(r'\\(\w+)(?:[(].+[)])?(?:[\[].+[]])?{?')):
     """Finds the cursor position where completion starts."""
 
     row, col = vim.current.window.cursor
@@ -505,7 +507,7 @@ class TeXSevenOmni(TeXSevenBibTeX):
         elif 'includeonly' in self.keyword:
           compl = self.incpaths
 
-    except TeXSevenError, e:
+    except TeXSevenError as e:
       echoerr("Omni completion failed: "+str(e))
       compl = []
 
@@ -563,7 +565,7 @@ class TeXSevenDocument(TeXSevenBase):
       output = self.get_master_output(vimbuffer)
       cmd = '{0} "{1}" &> /dev/null &'.format(config['viewer']['app'], output)
       subprocess.call(cmd, shell=True)
-    except TeXSevenError, e:
+    except TeXSevenError as e:
       echoerr("Cannot determine the output file: "+str(e))
 
   def bibquery(self, cword, paths):

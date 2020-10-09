@@ -56,5 +56,5 @@ endif
 if !exists('g:tex_seven_did_python') 
   let g:tex_seven_did_python = 1
   let b:tex_seven_config._pypath = s:path
-  exe "pyfile" fnameescape(b:tex_seven_config._pypath.'/TeXSeven.py')
+  exe "py3file" fnameescape(b:tex_seven_config._pypath.'/TeXSeven.py')
 endif

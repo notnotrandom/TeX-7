@@ -30,7 +30,7 @@
 " is first opened. It creates the singletons (if needed), and adds that buffer
 " to the buffer list TeX-7 knows about. See ftplugin/tex_seven/TeXSeven.py.
 function tex_seven#AddBuffer()
-python << EOF
+python3 << EOF
 omni = TeXSevenOmni()
 document = TeXSevenDocument(vim.current.buffer)
 EOF
@@ -38,7 +38,7 @@ endfunction
 
 " Legacy; currently unused. Maybe useful for SyncTeX?
 function tex_seven#GetMaster()
-python << EOF
+python3 << EOF
 try:
   master_file = document.get_master_file(vim.current.buffer)
 except TeXSevenError, e:
@@ -50,7 +50,7 @@ endfunction
 
 " Legacy; currently unused. Maybe useful for SyncTeX?
 function tex_seven#GetOutputFile()
-python << EOF
+python3 << EOF
 master_output = ""
 try:
   master_output = document.get_master_output(vim.current.buffer)
@@ -63,7 +63,7 @@ endfunction
 
 " Redoes the search for bib files and include'd files.
 function tex_seven#Reconfigure(config)
-python << EOF
+python3 << EOF
 try:
   omni.update()
 
@@ -89,7 +89,7 @@ endfunction
 
 function tex_seven#ViewDocument()
   echo "Viewing the document...\r"
-  python document.view(vim.current.buffer)
+  python3 document.view(vim.current.buffer)
 endfunction
 
 "******************************************************************************
@@ -99,10 +99,10 @@ endfunction
 " For completion of \ref's, \cite's, etc.
 function tex_seven#OmniCompletion(findstart, base)
   if a:findstart
-    let pos = pyeval('omni.findstart()')
+    let pos = py3eval('omni.findstart()')
     return pos
   else
-    let compl = pyeval('omni.completions()')
+    let compl = py3eval('omni.completions()')
     return compl
   endif
 endfunction
@@ -131,7 +131,7 @@ function tex_seven#MathCompletion(findstart, base)
 endfunction
 
 function tex_seven#Bibquery(cword)
-python << EOF
+python3 << EOF
 try:
   document.bibquery(vim.eval('a:cword'), omni.bibpaths)
 except TeXSevenError, e:
@@ -141,7 +141,7 @@ return
 endfunction
 
 function tex_seven#Incquery(cword)
-python << EOF
+python3 << EOF
 try:
   document.incquery(vim.eval('a:cword'), omni.incpaths)
 except TeXSevenError, e:
