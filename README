@@ -8,9 +8,22 @@ TeX-7 is a toned-down fork of Elias Toivanen's TeX-9 (https://github.com/vim-scr
 
 First and foremost, compiling. LaTeX build process is *not* trivial, and vim is not an IDE. So I removed that part. I also don't think this plugin should provide skeletons, so that's gone too. And SyncTeX configuration heavily depends on the viewer used, so maybe a minimalist plugin is not the best place... I tweaked some of the default mappings to my liking (although the plugin retains TeX-9's ease of customization.)
 
-I few years ago I patched TeX-9 to allow omni completion for \includeonly statements, but that never got included in the main source. Well, it is here now. Another feature is that hitting `gd` over a `\ref`, takes you to the corresponding \label, even when they are on different files. Also, with with `\ref{key}` or `\cite{key}`, the cursor no longer needs to be over the `key` part; both `gd`---which now works for both `\ref` and `\cite`---will work even when the cursor is over the `\ref` or `\cite` part.
+I few years ago I patched TeX-9 to allow omni completion for \includeonly statements, but that never got included in the main source. Well, it is here now. Another feature is that hitting `gd` over a `\ref`, takes you to the corresponding \label, even when they are on different files. Also, with with `\ref{key}` or `\cite{key}`, the cursor no longer needs to be over the `key` part; `gd`---which now works for both `\ref` and `\cite`---will work even when the cursor is over the `\ref` or `\cite` part.
 
 Otherwise, this plugin is mostly like its predecessor.
 
 ==============================================================================
+
+**HEADS UP:** update to Python 3
+
+The TeX-9 plugin was originally developed for vim with Python 2. The changes I made after forking were thought with Python 3 compatibility, altough the plugin continued to run in version 2 mode -- until now. Elias had finally gotten around to port TeX-9 to v3, so I thought it a good opportunity to do the same to TeX-7.
+
+There only one major problem which, it turns out, has nothing to do with Python, but only with vim. To cut a long story short, vim can be compiled with support for both Python 2 and 3, **but they cannot be used simultaneously!** I ended up following the solution indicated [here](https://robertbasic.com/blog/force-python-version-in-vim/); basically, forcing vim to use Python 3, by dumping this in `~/.vimrc`:
+
+~~~
+if has('python3')
+endif
+~~~
+
+Beware, though, that if you are using any plugins that require Python 2, this will likely land you into trouble...
 
