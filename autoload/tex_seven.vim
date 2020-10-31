@@ -41,7 +41,7 @@ function tex_seven#GetMaster()
 python3 << EOF
 try:
   master_file = document.get_master_file(vim.current.buffer)
-except TeXSevenError, e:
+except TeXSevenError as e:
   echoerr(e)
   master_file = ""
 EOF
@@ -54,7 +54,7 @@ python3 << EOF
 master_output = ""
 try:
   master_output = document.get_master_output(vim.current.buffer)
-except TeXSevenError, e:
+except TeXSevenError as e:
   echoerr(e)
   master_output = ""
 EOF
@@ -81,7 +81,7 @@ try:
   else:
     echomsg("No \include'd files were found.")
 
-except TeXSevenError, e:
+except TeXSevenError as e:
 # It may be not an error. The user may not use BibTeX...
   echomsg("Update BibTeX and/or \\include'd files failed: "+str(e))
 EOF
@@ -134,7 +134,7 @@ function tex_seven#Bibquery(cword)
 python3 << EOF
 try:
   document.bibquery(vim.eval('a:cword'), omni.bibpaths)
-except TeXSevenError, e:
+except TeXSevenError as e:
   echoerr(e)
 EOF
 return
@@ -144,7 +144,7 @@ function tex_seven#Incquery(cword)
 python3 << EOF
 try:
   document.incquery(vim.eval('a:cword'), omni.incpaths)
-except TeXSevenError, e:
+except TeXSevenError as e:
   echoerr(e)
 EOF
 return
