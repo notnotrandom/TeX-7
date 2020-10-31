@@ -12,21 +12,21 @@
 let b:did_indent = 1 
 
 " Control TeX-9 indentation
-if exists("b:did_tex_nine_indent") | finish
+if exists("b:did_tex_seven_indent") | finish
 endif
-let b:did_tex_nine_indent = 1
+let b:did_tex_seven_indent = 1
 
-setlocal indentexpr=TeXNineIndent()
+setlocal indentexpr=TeXSevenIndent()
 setlocal nolisp
 setlocal nosmartindent
 setlocal autoindent
-setlocal indentkeys+=},=\\item,=\\bibitem
+setlocal indentkeys+=},0=\\item,0=\\bibitem
 
 " Only define the function once
-if exists("*TeXNineIndent") | finish
+if exists("*TeXSevenIndent") | finish
 endif
 
-function TeXNineIndent()
+function TeXSevenIndent()
 
     " Find a non-blank line above the current line.
     let lnum = prevnonblank(v:lnum - 1)
