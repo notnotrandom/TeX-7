@@ -155,8 +155,8 @@ inoremap <buffer> <LocalLeader>/- \bigcap
 inoremap <buffer> <LocalLeader>/+ \bigcup
 inoremap <buffer> <LocalLeader>< \leq
 inoremap <buffer> <LocalLeader>> \geq
-inoremap <buffer> <LocalLeader>~ \wildetilde{}<Left>
-inoremap <buffer> <LocalLeader>^ \wildehat{}<Left>
+inoremap <buffer> <LocalLeader>~ \widetilde{}<Left>
+inoremap <buffer> <LocalLeader>^ \widehat{}<Left>
 inoremap <buffer> <LocalLeader>_ \overline{}<Left>
 inoremap <buffer> <LocalLeader>. \cdot<Space>
 inoremap <buffer> <LocalLeader><CR> \nonumber\\<CR>
