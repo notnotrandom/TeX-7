@@ -31,11 +31,12 @@ let &dictionary = fnameescape(s:path.'/tex_dictionary.txt')
 
 " Defaults
 let b:tex_seven_config = { 
-      \    'verbose' : 0, 
-      \    'leader' : '', 
-      \    'viewer' : {'app': 'xdg-open', 'target': 'pdf'}, 
-      \    'disable' : 0, 
-      \    'debug': 0,
+      \    'debug'        : 0,
+      \    'disable'      : 0,
+      \    'leader'       : '',
+      \    'diamond_tex'  : '0',
+      \    'verbose'      : 0,
+      \    'viewer'       : {'app': 'xdg-open', 'target': 'pdf'},
       \}
 
 " Override values with user preferences

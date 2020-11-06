@@ -68,17 +68,11 @@
     you may tweak some features of TeX-7 by defining a |Dictionary| called
     `g:tex_seven_config' in your vimrc. The following keys are recognized:
 
-    compiler: String
-        *   The TeX compiler you want to use (xelatex, pdflatex, latex, make...)
-        *   Recommended setting
-        *   See |tex_seven-advanced| for details.
-        *   Default: undefined
-    
     leader: String
         *   Most TeX-7 mappings begin with this prefix
         *   Optional
         *   Default: The values of |mapleader|  and |maplocalleader| are
-            honored. Otherwise set to semi-colon ';'.
+            honored. Otherwise set to colon ':'.
 
     viewer: Dictionary
         *   Application used for viewing documents.
@@ -101,21 +95,13 @@
         * Optional
         * Default: 0 (Disabled)
 
-    shell_escape: Boolean
-        * The LaTeX compiler will be called with the -shell-escape flag.
-        * Required for packages such as minted, etc.
-        * Optional
-        * Default: 0 (Disabled)
-
-    extra_args: String
-        * Whatever extra arguments you want to give the LaTeX compiler.
-        * For the -shell-escape flag, see above.
-        * Optional
-        * Default: ""
-
     disable: Boolean
         * TeX-7 is disabled temporarily.
         * Default: 0 (TeX-7 is loaded)
+
+    diamond_tex: Boolean
+        * TeX-9's originally mapped <LocalLeader>< to \leq, and <LocalLeader>> to \geq. However, I find these LaTeX commands actually easy to type, to I prefer to map <LocalLeader>< to nothing, and <LocalLeader>> to <> (sometimes called diamond). Among other things, this is useful when writing Beamer templates.
+        * Default: 0 (map <LocalLeader>> to <>)
 
     Examples: >
 

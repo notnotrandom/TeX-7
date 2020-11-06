@@ -153,8 +153,14 @@ inoremap <buffer> <LocalLeader>- \cap
 inoremap <buffer> <LocalLeader>+ \cup
 inoremap <buffer> <LocalLeader>/- \bigcap
 inoremap <buffer> <LocalLeader>/+ \bigcup
-inoremap <buffer> <LocalLeader>< \leq
-inoremap <buffer> <LocalLeader>> \geq
+if exists('g:tex_seven_config')
+      \ && has_key(g:tex_seven_config, 'diamond_tex')
+      \ && g:tex_seven_config['diamond_tex'] == '1'
+  inoremap <buffer> <LocalLeader>< \leq
+  inoremap <buffer> <LocalLeader>> \geq
+else
+  inoremap <buffer> <LocalLeader>> <><Left>
+endif
 inoremap <buffer> <LocalLeader>~ \widetilde{}<Left>
 inoremap <buffer> <LocalLeader>^ \widehat{}<Left>
 inoremap <buffer> <LocalLeader>_ \overline{}<Left>
