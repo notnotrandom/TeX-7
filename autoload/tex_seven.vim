@@ -45,7 +45,7 @@ except TeXSevenError as e:
   echoerr(e)
   master_file = ""
 EOF
-return pyeval('master_file')
+return py3eval('master_file')
 endfunction
 
 " Legacy; currently unused. Maybe useful for SyncTeX?
@@ -58,7 +58,7 @@ except TeXSevenError as e:
   echoerr(e)
   master_output = ""
 EOF
-return pyeval('master_output')
+return py3eval('master_output')
 endfunction
 
 " Redoes the search for bib files and include'd files.
@@ -118,7 +118,7 @@ function tex_seven#MathCompletion(findstart, base)
     endwhile
     return start
   else
-    let compl = pyeval('tex_seven_maths_cache')
+    let compl = py3eval('tex_seven_maths_cache')
     call filter(compl, 'v:val.word =~ "^'.a:base.'"')
     "let res = []
     "for m in compl
@@ -196,7 +196,7 @@ endfunction
 
 function tex_seven#ChangeFontStyle(style)
   let str = 'di'
-  let is_math = pyeval("int(is_latex_math_environment(vim.current.window))")
+  let is_math = py3eval("int(is_latex_math_environment(vim.current.window))")
   let str .= is_math ? '\math'.a:style : '\text'.a:style
   let str .= "{}\<Left>\<C-R>\""
   return str
@@ -233,7 +233,7 @@ endfunction
 
 " For visual selection operators of inner or outer (current) environment.
 function tex_seven#EnvironmentOperator(mode)
-  let pos = pyeval('get_latex_environment(vim.current.window)["range"]')
+  let pos = py3eval('get_latex_environment(vim.current.window)["range"]')
   if !pos[0] && !pos[1]
     return "\<Esc>"
   endif
