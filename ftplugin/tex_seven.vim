@@ -188,6 +188,20 @@ omap <buffer><silent> ae :normal vae<CR>
 vmap <buffer><expr> ie tex_seven#EnvironmentOperator('inner')
 omap <buffer><silent> ie :normal vie<CR>
 
+" As these are visual mode mappings, they interfere with other usages of
+" visual mode, notoriously the snippets plugin. Hence each mapping starts with
+" a <Space>: because having a visually selected piece of text, I almost never
+" want to enter a space...
+" (I don't use <LocalLeader> here because the mappings have two keys. I
+" generally avoid the leader for mapping with more than one key (other than
+" said leader, of course).)
+vmap <buffer><expr> <Space>bf tex_seven#ChangeFontStyle('bf')
+vmap <buffer><expr> <Space>it tex_seven#ChangeFontStyle('it')
+vmap <buffer><expr> <Space>rm tex_seven#ChangeFontStyle('rm')
+vmap <buffer><expr> <Space>sf tex_seven#ChangeFontStyle('sf')
+vmap <buffer><expr> <Space>tt tex_seven#ChangeFontStyle('tt')
+vmap <buffer>       <Space>up di\text{}<Left><C-R>"
+
 if exists('s:maplocalleader_saved')
   let g:maplocalleader = s:maplocalleader_saved
 else
